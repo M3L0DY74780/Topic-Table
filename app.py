@@ -2,6 +2,7 @@ import base64
 import hashlib
 import html
 import json
+import mimetypes
 import os
 import re
 import socket
@@ -21,6 +22,9 @@ STATE_FILE = Path(os.environ.get('STATE_FILE', 'topic_table_state.json'))
 if not STATE_FILE.is_absolute():
     STATE_FILE = ROOT_DIR / STATE_FILE
 STATE_LOCK = threading.Lock()
+
+mimetypes.add_type('text/css', '.css')
+mimetypes.add_type('application/javascript', '.js')
 
 
 class WebSocketHub:
