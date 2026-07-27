@@ -1,9 +1,11 @@
 (function () {
   var isSupported = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+  var enabledKey = 'topicTableTtsEnabled';
   var autoReadKey = 'topicTableTtsAutoRead';
   var rateKey = 'topicTableTtsRate';
 
   var state = {
+    enabled: true,
     autoRead: false,
     rate: 1,
     lastAnnouncement: '',
@@ -133,6 +135,11 @@
       return;
     }
 
+    if (!state.enabled) {
+      updateStatus('Text-to-speech is turned off.');
+      return;
+    }
+
     var message = String(text || '').replace(/\s+/g, ' ').trim();
     if (!message) {
       updateStatus('No readable text found.');
@@ -176,6 +183,10 @@
   }
 
   function announce(message, options) {
+    if (!state.enabled) {
+      return;
+    }
+
     var text = String(message || '').replace(/\s+/g, ' ').trim();
     if (!text) {
       return;
@@ -201,6 +212,22 @@
     speak(collectReadableText(), { interrupt: true });
   }
 
+  function updateEnabledValue(value) {
+    state.enabled = !!value;
+    try {
+      localStorage.setItem(enabledKey, state.enabled ? '1' : '0');
+    } catch (error) {
+      // Ignore storage failures.
+    }
+
+    if (!state.enabled) {
+      stop();
+      updateStatus('Text-to-speech is turned off.');
+    } else {
+      updateStatus('Ready to read.');
+    }
+  }
+
   function updateAutoReadValue(value) {
     state.autoRead = !!value;
     try {
@@ -224,6 +251,13 @@
   }
 
   function loadSettings() {
+    try {
+      var savedEnabled = localStorage.getItem(enabledKey);
+      state.enabled = savedEnabled === null ? true : savedEnabled === '1';
+    } catch (error) {
+      state.enabled = true;
+    }
+
     try {
       var savedAutoRead = localStorage.getItem(autoReadKey);
       state.autoRead = savedAutoRead === null ? false : savedAutoRead === '1';
@@ -274,6 +308,16 @@
     var settingsRow = document.createElement('div');
     settingsRow.className = 'tts-settings-row';
 
+    var enabledLabel = document.createElement('label');
+    enabledLabel.className = 'tts-checkbox';
+
+    var enabledCheckbox = document.createElement('input');
+    enabledCheckbox.type = 'checkbox';
+    enabledCheckbox.checked = state.enabled;
+
+    enabledLabel.appendChild(enabledCheckbox);
+    enabledLabel.appendChild(document.createTextNode(' Enable TTS'));
+
     var autoLabel = document.createElement('label');
     autoLabel.className = 'tts-checkbox';
 
@@ -317,19 +361,47 @@
 
     rateLabel.appendChild(rateSelect);
 
+    function syncControlAvailability() {
+      var controlsEnabled = state.enabled;
+      readButton.disabled = !controlsEnabled;
+      stopButton.disabled = !controlsEnabled;
+      autoCheckbox.disabled = !controlsEnabled;
+      rateSelect.disabled = !controlsEnabled;
+      if (!controlsEnabled) {
+        autoLabel.style.opacity = '0.55';
+        rateLabel.style.opacity = '0.55';
+      } else {
+        autoLabel.style.opacity = '';
+        rateLabel.style.opacity = '';
+      }
+    }
+
+    enabledCheckbox.addEventListener('change', function () {
+      updateEnabledValue(enabledCheckbox.checked);
+      syncControlAvailability();
+      if (state.enabled) {
+        announce('Text-to-speech is now on.', { force: true });
+      }
+    });
+
+    settingsRow.appendChild(enabledLabel);
     settingsRow.appendChild(autoLabel);
     settingsRow.appendChild(rateLabel);
 
     var status = document.createElement('p');
     status.id = 'ttsStatusText';
     status.className = 'tts-status';
-    status.textContent = isSupported ? 'Ready to read.' : 'Text-to-speech not available here.';
+    status.textContent = isSupported
+      ? (state.enabled ? 'Ready to read.' : 'Text-to-speech is turned off.')
+      : 'Text-to-speech not available here.';
 
     container.appendChild(title);
     container.appendChild(actions);
     container.appendChild(settingsRow);
     container.appendChild(status);
     document.body.appendChild(container);
+
+    syncControlAvailability();
   }
 
   function bindHotkeys() {
