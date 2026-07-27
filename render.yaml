@@ -8,8 +8,4 @@ services:
     healthCheckPath: /index.html
     envVars:
       - key: STATE_FILE
-        value: /data/topic_table_state.json
-    disk:
-      name: topic-table-data
-      mountPath: /data
-      sizeGB: 1
+        value: /tmp/topic_table_state.json
