@@ -148,6 +148,7 @@
     </div>
 
 
+  <script src="tts.js"></script>
   <script src="translate.js"></script>
   <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   <script src="api.js"></script>
@@ -199,6 +200,13 @@
       const nextTopicBtn = document.getElementById('nextTopicBtn');
       const clearQueueBtn = document.getElementById('clearQueueBtn');
       const queueMessage = document.getElementById('queueMessage');
+
+      function speakUpdate(message, force) {
+        if (!window.topicTableTTS || !message) {
+          return;
+        }
+        window.topicTableTTS.announce(message, force ? { force: true } : undefined);
+      }
 
       function getSelectedTableId() {
         try {
@@ -327,6 +335,9 @@
         topicView.classList.add('hidden');
         loginForm.reset();
         loginMessage.textContent = settings.message || '';
+        if (settings.message) {
+          speakUpdate(settings.message, true);
+        }
         queueMessage.textContent = '';
         fullNameInput.focus();
       }
@@ -397,6 +408,7 @@
         selectedTableDisplay.textContent = 'Table: ' + getSelectedTableId();
         await syncServerState(userName, 'Signed in', getSelectedTableId());
         await renderUsersList();
+        speakUpdate('Signed in as ' + currentSessionUserName + ' at ' + getSelectedTableId() + '.', true);
       }
 
       async function handleLogin(source) {
@@ -404,6 +416,7 @@
 
         if (source === 'nric' && !enteredNric) {
           loginMessage.textContent = 'Please enter your NRIC to continue.';
+          speakUpdate(loginMessage.textContent, true);
           return;
         }
 
@@ -411,6 +424,7 @@
         loginMessage.textContent = source === 'face'
           ? 'Face scan complete. You are now signed in.'
           : 'NRIC verified. You are now signed in.';
+        speakUpdate(loginMessage.textContent, true);
         await showTopicView(userName);
       }
 
@@ -445,6 +459,7 @@
 
         await persistSharedState(nextState, getSelectedTableId());
         await syncServerState(contactInfo.name, topic, getSelectedTableId());
+        speakUpdate(displayMessage.textContent, true);
       }
 
       async function shareMusicVideo(video) {
@@ -480,6 +495,7 @@
         previewSubtitle.textContent = title;
         queueMessage.textContent = 'Playing: ' + title;
         musicSearchMessage.textContent = 'Now playing on hologram.';
+        speakUpdate('Now playing on hologram. ' + title + '.', true);
       }
 
       async function shareMusicVideoDirect(video) {
@@ -514,6 +530,7 @@
         previewSubtitle.textContent = title;
         queueMessage.textContent = 'Direct play ready: ' + title;
         musicSearchMessage.textContent = 'Direct play mode sent to hologram.';
+        speakUpdate('Direct YouTube playback sent to hologram. ' + title + '.', true);
       }
 
       function renderYouTubeResults(items) {
@@ -612,6 +629,7 @@
         const topic = customTopicInput.value.trim();
         if (!topic) {
           queueMessage.textContent = 'Please type a topic first.';
+          speakUpdate(queueMessage.textContent, true);
           return;
         }
 
@@ -632,6 +650,7 @@
         previewTitle.textContent = `${topic} queued`;
         previewSubtitle.textContent = 'The hologram will show this topic next.';
         queueMessage.textContent = `${topic} added to queue.`;
+        speakUpdate(queueMessage.textContent, true);
         customTopicInput.value = '';
       }
 
@@ -640,6 +659,7 @@
         const queue = Array.isArray(previousState.queue) ? previousState.queue.slice() : [];
         if (queue.length === 0) {
           queueMessage.textContent = 'No queued topics to move to.';
+          speakUpdate(queueMessage.textContent, true);
           return;
         }
 
@@ -657,6 +677,7 @@
         previewTitle.textContent = `${nextTopic}`;
         previewSubtitle.textContent = 'This topic is now active for the group.';
         queueMessage.textContent = `Moved to ${nextTopic}.`;
+        speakUpdate(displayMessage.textContent, true);
       }
 
       async function clearQueue() {
@@ -668,6 +689,7 @@
         previewTitle.textContent = 'Queue cleared';
         previewSubtitle.textContent = 'No topics are waiting to be shown.';
         queueMessage.textContent = 'Queue cleared.';
+        speakUpdate(queueMessage.textContent, true);
       }
 
       async function renderUsersList(serverState) {
@@ -724,6 +746,7 @@
       document.querySelectorAll('.table-option-btn').forEach(function (button) {
         button.addEventListener('click', async function () {
           setSelectedTableId(button.dataset.table);
+          speakUpdate('Switched to ' + button.dataset.table + '.', true);
           if (!topicView.classList.contains('hidden')) {
             currentSessionTableId = getSelectedTableId();
             await syncTabletUsersFromServer();

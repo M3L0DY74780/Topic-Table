@@ -83,6 +83,9 @@
       <p style="margin-top: 20px;"><a class="btn btn-secondary" href="index.html" data-back-home>Back to Home</a></p>
     </div>
 
+    <script src="tts.js"></script>
+    <script src="translate.js"></script>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     <script src="api.js"></script>
     <script src="auth.js"></script>
     <script>
@@ -103,6 +106,7 @@
       const projectionScreen = document.querySelector('.projection-screen');
       const projectionContent = document.querySelector('.projection-content');
       const projectionLabel = document.querySelector('.projection-label');
+      let lastSpokenProjectionSummary = '';
 
       function applyProjectionFullscreenLayout(isProjectionFullscreen) {
         if (isProjectionFullscreen) {
@@ -132,8 +136,6 @@
           return;
         }
 
-          <script src="translate.js"></script>
-          <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
         projectionScreen.style.display = '';
         projectionScreen.style.flex = '';
         projectionScreen.style.width = '';
@@ -169,6 +171,9 @@
         document.querySelectorAll('.table-option-btn').forEach(function (button) {
           button.classList.toggle('active', button.dataset.table === tableId);
         });
+        if (window.topicTableTTS) {
+          window.topicTableTTS.announce('Switched hologram to ' + tableId + '.', { force: true });
+        }
         renderSharedState();
       }
 
@@ -276,6 +281,16 @@
           listItem.textContent = item;
           topicQueue.appendChild(listItem);
         });
+
+        const spokenSummary = isMusic
+          ? ('Hologram music update. ' + activeTopic + '. ' + currentDisplay.textContent)
+          : ('Hologram topic update. ' + activeTopic + '. ' + currentDisplay.textContent);
+        if (spokenSummary !== lastSpokenProjectionSummary) {
+          lastSpokenProjectionSummary = spokenSummary;
+          if (window.topicTableTTS) {
+            window.topicTableTTS.announce(spokenSummary);
+          }
+        }
       }
 
       document.querySelectorAll('.table-option-btn').forEach(function (button) {
@@ -303,7 +318,12 @@
       }
 
       fullscreenBtn.addEventListener('click', function () {
-        toggleFullscreen().catch(function () {
+        const wasFullscreen = document.fullscreenElement === projectionStage;
+        toggleFullscreen().then(function () {
+          if (window.topicTableTTS) {
+            window.topicTableTTS.announce(wasFullscreen ? 'Exited full screen mode.' : 'Entered full screen mode.', { force: true });
+          }
+        }).catch(function () {
           // Ignore fullscreen permission or browser support failures.
         });
       });
