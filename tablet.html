@@ -465,7 +465,8 @@
           queue: [title],
           musicEmbedUrl: embedUrl,
           musicProvider: 'YouTube',
-          musicSourceUrl: watchUrl
+          musicSourceUrl: watchUrl,
+          musicPlaybackMode: 'embed'
         };
 
         await persistSharedState(nextState, getSelectedTableId());
@@ -477,6 +478,40 @@
         previewSubtitle.textContent = title;
         queueMessage.textContent = 'Playing: ' + title;
         musicSearchMessage.textContent = 'Now playing on hologram.';
+      }
+
+      async function shareMusicVideoDirect(video) {
+        if (!video) {
+          musicSearchMessage.textContent = 'Unable to open this result on hologram.';
+          return;
+        }
+
+        const title = (video.title || '').trim() || 'YouTube';
+        const watchUrl = (video.watchUrl || '').trim();
+        if (!watchUrl) {
+          musicSearchMessage.textContent = 'Unable to open this result on hologram.';
+          return;
+        }
+
+        const nextState = {
+          activeMode: 'music',
+          activeTopic: title,
+          queue: [title],
+          musicEmbedUrl: '',
+          musicProvider: 'YouTube',
+          musicSourceUrl: watchUrl,
+          musicPlaybackMode: 'external'
+        };
+
+        await persistSharedState(nextState, getSelectedTableId());
+        await syncServerState(contactInfo.name, title, getSelectedTableId());
+
+        selectedTopicLabel.textContent = 'YouTube direct mode selected: ' + title;
+        displayMessage.textContent = 'Open this track directly on the hologram screen.';
+        previewTitle.textContent = 'Ready for direct play';
+        previewSubtitle.textContent = title;
+        queueMessage.textContent = 'Direct play ready: ' + title;
+        musicSearchMessage.textContent = 'Direct play mode sent to hologram.';
       }
 
       function renderYouTubeResults(items) {
@@ -516,6 +551,14 @@
             await shareMusicVideo(item);
           });
 
+          const directBtn = document.createElement('button');
+          directBtn.type = 'button';
+          directBtn.className = 'btn btn-tertiary small';
+          directBtn.textContent = 'Play on YouTube screen';
+          directBtn.addEventListener('click', async function () {
+            await shareMusicVideoDirect(item);
+          });
+
           const openBtn = document.createElement('a');
           openBtn.className = 'btn btn-secondary small';
           openBtn.textContent = 'Open YouTube';
@@ -524,6 +567,7 @@
           openBtn.rel = 'noopener noreferrer';
 
           actions.appendChild(playBtn);
+          actions.appendChild(directBtn);
           actions.appendChild(openBtn);
           row.appendChild(title);
           row.appendChild(actions);

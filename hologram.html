@@ -48,6 +48,9 @@
                 referrerpolicy="strict-origin-when-cross-origin"
               ></iframe>
             </div>
+            <div id="musicExternalContainer" class="music-external-container hidden">
+              <a id="musicExternalLink" class="btn btn-primary" href="#" target="_blank" rel="noopener noreferrer">Play on YouTube now</a>
+            </div>
             <p id="musicFallbackText" class="music-fallback-text hidden">
               If this video cannot play here, open it directly:
               <a id="musicFallbackLink" href="#" target="_blank" rel="noopener noreferrer">Open in YouTube</a>
@@ -90,6 +93,8 @@
       const projectionSubtitle = document.getElementById('projectionSubtitle');
       const musicEmbedContainer = document.getElementById('musicEmbedContainer');
       const musicEmbedFrame = document.getElementById('musicEmbedFrame');
+      const musicExternalContainer = document.getElementById('musicExternalContainer');
+      const musicExternalLink = document.getElementById('musicExternalLink');
       const musicFallbackText = document.getElementById('musicFallbackText');
       const musicFallbackLink = document.getElementById('musicFallbackLink');
       const selectedServerMessage = document.getElementById('selectedServerMessage');
@@ -175,6 +180,7 @@
         const musicEmbedUrl = state.musicEmbedUrl || '';
         const musicProvider = state.musicProvider || 'Music';
         const musicSourceUrl = state.musicSourceUrl || '';
+        const musicPlaybackMode = state.musicPlaybackMode || 'embed';
 
         function normalizeMusicEmbedUrl(rawUrl) {
           const normalized = (rawUrl || '').trim();
@@ -212,17 +218,30 @@
         const resolvedEmbedUrl = normalizeMusicEmbedUrl(musicEmbedUrl);
 
         currentDisplay.textContent = isMusic
-          ? (resolvedEmbedUrl ? musicProvider + ' player is now available on the hologram.' : `Music mode is live: ${activeTopic}`)
+          ? (musicPlaybackMode === 'external'
+              ? 'Direct YouTube playback is ready on this hologram screen.'
+              : (resolvedEmbedUrl ? musicProvider + ' player is now available on the hologram.' : `Music mode is live: ${activeTopic}`))
           : `${activeTopic} is now shown on the hologram.`;
 
         projectionTitle.textContent = isMusic ? activeTopic : activeTopic;
         projectionSubtitle.textContent = isMusic
-          ? (resolvedEmbedUrl ? 'Play the shared track or playlist directly from the hologram.' : 'The group can relax and enjoy the shared soundtrack.')
+          ? (musicPlaybackMode === 'external'
+              ? 'Tap the button below to play directly on YouTube from this hologram.'
+              : (resolvedEmbedUrl ? 'Play the shared track or playlist directly from the hologram.' : 'The group can relax and enjoy the shared soundtrack.'))
           : 'Everyone can now join the conversation around this topic.';
 
-        if (isMusic && resolvedEmbedUrl) {
+        if (isMusic && musicPlaybackMode === 'external' && musicSourceUrl) {
+          musicEmbedFrame.src = '';
+          musicEmbedContainer.classList.add('hidden');
+          musicExternalLink.href = musicSourceUrl;
+          musicExternalContainer.classList.remove('hidden');
+          musicFallbackLink.href = musicSourceUrl;
+          musicFallbackText.classList.remove('hidden');
+        } else if (isMusic && resolvedEmbedUrl) {
           musicEmbedFrame.src = resolvedEmbedUrl;
           musicEmbedContainer.classList.remove('hidden');
+          musicExternalLink.href = '#';
+          musicExternalContainer.classList.add('hidden');
           if (musicSourceUrl) {
             musicFallbackLink.href = musicSourceUrl;
             musicFallbackText.classList.remove('hidden');
@@ -233,6 +252,8 @@
         } else {
           musicEmbedFrame.src = '';
           musicEmbedContainer.classList.add('hidden');
+          musicExternalLink.href = '#';
+          musicExternalContainer.classList.add('hidden');
           musicFallbackLink.href = '#';
           musicFallbackText.classList.add('hidden');
         }

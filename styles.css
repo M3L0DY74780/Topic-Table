@@ -433,6 +433,14 @@ h1 {
   background: #081522;
 }
 
+.music-external-container {
+  margin-top: 18px;
+}
+
+.music-external-container .btn {
+  padding: 14px 22px;
+}
+
 .music-fallback-text {
   margin-top: 14px;
   color: var(--muted);
