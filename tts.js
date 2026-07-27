@@ -4,11 +4,10 @@
   var rateKey = 'topicTableTtsRate';
 
   var state = {
-    autoRead: true,
+    autoRead: false,
     rate: 1,
     lastAnnouncement: '',
-    lastAnnouncementAt: 0,
-    initialReadDone: false
+    lastAnnouncementAt: 0
   };
 
   function getPreferredLanguage() {
@@ -227,9 +226,9 @@
   function loadSettings() {
     try {
       var savedAutoRead = localStorage.getItem(autoReadKey);
-      state.autoRead = savedAutoRead === null ? true : savedAutoRead === '1';
+      state.autoRead = savedAutoRead === null ? false : savedAutoRead === '1';
     } catch (error) {
-      state.autoRead = true;
+      state.autoRead = false;
     }
 
     try {
@@ -359,20 +358,6 @@
         // Trigger voice list initialization for language matching.
         window.speechSynthesis.getVoices();
       };
-    }
-
-    function runInitialRead() {
-      if (!state.autoRead || state.initialReadDone) {
-        return;
-      }
-      state.initialReadDone = true;
-      announce(collectReadableText(), { force: true });
-    }
-
-    if (state.autoRead) {
-      window.setTimeout(runInitialRead, 700);
-      document.addEventListener('pointerdown', runInitialRead, { once: true });
-      document.addEventListener('keydown', runInitialRead, { once: true });
     }
   }
 
