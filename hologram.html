@@ -216,6 +216,8 @@
         }
 
         const resolvedEmbedUrl = normalizeMusicEmbedUrl(musicEmbedUrl);
+        const hasMusicEmbed = isMusic && musicPlaybackMode !== 'external' && !!resolvedEmbedUrl;
+        projectionStage.classList.toggle('has-music-embed', hasMusicEmbed);
 
         currentDisplay.textContent = isMusic
           ? (musicPlaybackMode === 'external'

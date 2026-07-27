@@ -526,14 +526,30 @@ h1 {
 .projection-stage.is-projection-fullscreen .music-embed-container,
 .projection-stage:fullscreen .music-embed-container,
 .projection-stage:-webkit-full-screen .music-embed-container {
-  width: min(92vw, 1200px);
-  margin-top: 28px;
+  width: min(94vw, 1400px);
+  max-width: 1400px;
+  margin-top: 20px;
 }
 
 .projection-stage.is-projection-fullscreen .music-embed-frame,
 .projection-stage:fullscreen .music-embed-frame,
 .projection-stage:-webkit-full-screen .music-embed-frame {
-  min-height: min(56vh, 560px);
+  min-height: 0;
+  height: min(70vh, calc(100vh - 210px));
+}
+
+.projection-stage.is-projection-fullscreen.has-music-embed .projection-content,
+.projection-stage:fullscreen.has-music-embed .projection-content,
+.projection-stage:-webkit-full-screen.has-music-embed .projection-content {
+  justify-content: flex-start;
+  padding-top: 26px;
+}
+
+.projection-stage.is-projection-fullscreen.has-music-embed .projection-content h2,
+.projection-stage:fullscreen.has-music-embed .projection-content h2,
+.projection-stage:-webkit-full-screen.has-music-embed .projection-content h2 {
+  font-size: clamp(2rem, 5vw, 4rem);
+  margin-bottom: 10px;
 }
 
 .server-layout {
