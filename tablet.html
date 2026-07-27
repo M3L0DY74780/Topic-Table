@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tablet View</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <div class="panel">
+        <span class="status">Tablet Mode</span>
+        <h1>Join the conversation</h1>
+        <p>
+          Log in with your NRIC or use a face scan to access your contact details and choose a topic
+          to share with the group hologram.
+        </p>
+      </div>
+
+      <div id="loginView" class="panel">
+        <div class="login-grid">
+          <div class="login-card">
+            <h2>Login</h2>
+            <div class="table-selector-card">
+              <h3>Select your table</h3>
+              <div class="table-option-buttons">
+                <button type="button" class="table-option-btn active" data-table="Table 01">Table 1</button>
+                <button type="button" class="table-option-btn" data-table="Table 02">Table 2</button>
+                <button type="button" class="table-option-btn" data-table="Table 03">Table 3</button>
+                <button type="button" class="table-option-btn" data-table="Table 04">Table 4</button>
+                <button type="button" class="table-option-btn" data-table="Table 05">Table 5</button>
+              </div>
+              <p id="selectedTableMessage" class="message">Current table: Table 01</p>
+            </div>
+
+            <form id="loginForm">
+              <label for="fullName">Name</label>
+              <input id="fullName" name="fullName" placeholder="Enter your name" />
+
+              <label for="emailInfo">Email</label>
+              <input id="emailInfo" name="emailInfo" placeholder="Enter your email" />
+
+              <label for="phoneInfo">Phone Number</label>
+              <input id="phoneInfo" name="phoneInfo" placeholder="Enter your phone number" />
+
+              <label for="nric">NRIC</label>
+              <input id="nric" name="nric" placeholder="Enter your NRIC" />
+              <button type="submit" class="btn btn-primary">Login with NRIC</button>
+            </form>
+
+            <div class="divider">or</div>
+            <button id="faceScanBtn" class="btn btn-secondary">Face Scan to Login</button>
+            <p id="loginMessage" class="message"></p>
+          </div>
+
+          <div class="login-card highlight">
+            <h3>What happens next?</h3>
+            <ul>
+              <li>Your contact information will appear after login.</li>
+              <li>You can pick a topic for the shared hologram display.</li>
+              <li>You can also switch to music mode for a relaxed group experience.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div id="topicView" class="panel hidden">
+        <div class="welcome-row">
+          <div>
+            <span class="status">Signed in</span>
+            <h2 id="welcomeName">Welcome back</h2>
+          </div>
+          <button id="logoutBtn" class="btn btn-secondary small">Logout</button>
+        </div>
+
+        <div class="tablet-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 30px;">
+          <div class="left-column" style="display: flex; flex-direction: column; gap: 35px;">
+            <section class="section-card">
+              <h3>Your contact info</h3>
+              <p id="contactName" class="contact-line">Name: </p>
+              <p id="contactEmail" class="contact-line">Email: </p>
+              <p id="contactPhone" class="contact-line">Phone: </p>
+            </section>
+
+            <section class="section-card">
+              <h3>Users at this table</h3>
+              <div id="usersList" class="users-list">
+                <p class="empty-state">No other users yet.</p>
+              </div>
+              <div id="userDetailsPanel" class="user-details-panel hidden">
+                <h4 id="sidebarUserName">User Details</h4>
+                <div class="user-detail-item">
+                  <strong>Email:</strong>
+                  <p id="sidebarUserEmail">—</p>
+                </div>
+                <div class="user-detail-item">
+                  <strong>Phone:</strong>
+                  <p id="sidebarUserPhone">—</p>
+                </div>
+                <div class="user-detail-item">
+                  <strong>NRIC:</strong>
+                  <p id="sidebarUserNric">—</p>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div class="right-column" style="display: flex; flex-direction: column; gap: 35px;">
+            <section class="section-card">
+              <h3>Choose a topic</h3>
+              <p id="selectedTopicLabel">No topic selected yet.</p>
+              <p id="selectedTableDisplay" class="contact-line">Table: Table 01</p>
+              <label for="customTopic">Or type your own topic</label>
+              <input id="customTopic" name="customTopic" placeholder="Type a topic here" />
+              <div class="topic-buttons">
+                <button class="topic-btn" data-topic="Technology">Technology</button>
+                <button class="topic-btn" data-topic="Sports">Sports</button>
+                <button class="topic-btn" data-topic="Travel">Travel</button>
+                <button class="topic-btn" data-topic="Food">Food</button>
+              </div>
+              <div class="topic-actions">
+                <button id="addTopicBtn" class="btn btn-primary">Add to queue</button>
+                <button id="nextTopicBtn" class="btn btn-secondary">Next</button>
+                <button id="clearQueueBtn" class="btn btn-tertiary">Clear queue</button>
+                <button id="musicBtn" class="btn btn-tertiary">Listen to music instead</button>
+              </div>
+              <div id="musicSearchPanel" class="music-search-panel hidden">
+                <h4>Search YouTube and play on hologram</h4>
+                <label for="musicSearchQuery">Search YouTube</label>
+                <input id="musicSearchQuery" name="musicSearchQuery" placeholder="Type song, artist, or playlist" />
+                <div class="music-search-actions">
+                  <button id="musicSearchBtn" class="btn btn-secondary">Search YouTube</button>
+                </div>
+                <p id="musicSearchMessage" class="message"></p>
+                <div id="musicSearchResults" class="music-search-results"></div>
+              </div>
+              <p id="queueMessage" class="message"></p>
+              <p id="displayMessage">Waiting for a topic to be shared.</p>
+              <div class="preview-box">
+                <h4 id="previewTitle">Hologram ready</h4>
+                <p id="previewSubtitle">Choose a topic to show the group.</p>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+    <script>
+      const loginView = document.getElementById('loginView');
+      const topicView = document.getElementById('topicView');
+      const loginForm = document.getElementById('loginForm');
+      const faceScanBtn = document.getElementById('faceScanBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const loginMessage = document.getElementById('loginMessage');
+      const welcomeName = document.getElementById('welcomeName');
+      const contactName = document.getElementById('contactName');
+      const contactEmail = document.getElementById('contactEmail');
+      const contactPhone = document.getElementById('contactPhone');
+      const selectedTopicLabel = document.getElementById('selectedTopicLabel');
+      const displayMessage = document.getElementById('displayMessage');
+      const previewTitle = document.getElementById('previewTitle');
+      const previewSubtitle = document.getElementById('previewSubtitle');
+      const nricInput = document.getElementById('nric');
+      const musicBtn = document.getElementById('musicBtn');
+      const usersList = document.getElementById('usersList');
+      const userDetailsPanel = document.getElementById('userDetailsPanel');
+      const sidebarUserName = document.getElementById('sidebarUserName');
+      const sidebarUserEmail = document.getElementById('sidebarUserEmail');
+      const sidebarUserPhone = document.getElementById('sidebarUserPhone');
+      const sidebarUserNric = document.getElementById('sidebarUserNric');
+
+      const contactInfo = {
+        name: '',
+        email: '',
+        phone: ''
+      };
+      let currentSessionUserName = '';
+      let currentSessionTableId = '';
+      const selectedTableKey = 'topicTableSelectedTablet';
+      const fullNameInput = document.getElementById('fullName');
+      const emailInput = document.getElementById('emailInfo');
+      const phoneInput = document.getElementById('phoneInfo');
+      const selectedTableMessage = document.getElementById('selectedTableMessage');
+      const selectedTableDisplay = document.getElementById('selectedTableDisplay');
+      const customTopicInput = document.getElementById('customTopic');
+      const musicSearchPanel = document.getElementById('musicSearchPanel');
+      const musicSearchQueryInput = document.getElementById('musicSearchQuery');
+      const musicSearchBtn = document.getElementById('musicSearchBtn');
+      const musicSearchMessage = document.getElementById('musicSearchMessage');
+      const musicSearchResults = document.getElementById('musicSearchResults');
+      const addTopicBtn = document.getElementById('addTopicBtn');
+      const nextTopicBtn = document.getElementById('nextTopicBtn');
+      const clearQueueBtn = document.getElementById('clearQueueBtn');
+      const queueMessage = document.getElementById('queueMessage');
+
+      function getSelectedTableId() {
+        try {
+          return JSON.parse(localStorage.getItem(selectedTableKey) || '{}').tableId || 'Table 01';
+        } catch (error) {
+          return 'Table 01';
+        }
+      }
+
+      function setSelectedTableId(tableId) {
+        localStorage.setItem(selectedTableKey, JSON.stringify({ tableId: tableId }));
+        selectedTableMessage.textContent = 'Current table: ' + tableId;
+        selectedTableDisplay.textContent = 'Table: ' + tableId;
+        document.querySelectorAll('.table-option-btn').forEach(function (button) {
+          button.classList.toggle('active', button.dataset.table === tableId);
+        });
+      }
+
+      async function getStoredState(tableId) {
+        try {
+          const state = await window.topicTableApi.getSharedStateMap();
+          return state[tableId] || {};
+        } catch (error) {
+          return {};
+        }
+      }
+
+      async function persistSharedState(state, tableId) {
+        try {
+          await window.topicTableApi.saveSharedTableState(tableId, state);
+          window.dispatchEvent(new CustomEvent('sharedStateUpdated', { detail: { tableId: tableId, state: state } }));
+        } catch (error) {
+          // ignore storage issues
+        }
+      }
+
+      async function getServerState() {
+        try {
+          return await window.topicTableApi.getServerState();
+        } catch (error) {
+          return {};
+        }
+      }
+
+      function getSessionUserName() {
+        return currentSessionUserName || fullNameInput.value.trim() || contactInfo.name || '';
+      }
+
+      function getSessionTable(tableId) {
+        return tableId || currentSessionTableId || getSelectedTableId();
+      }
+
+      function createDefaultTables() {
+        return [
+          { id: 'Table 01', name: 'Table 01', status: 'Live', users: [] },
+          { id: 'Table 02', name: 'Table 02', status: 'Live', users: [] },
+          { id: 'Table 03', name: 'Table 03', status: 'Live', users: [] },
+          { id: 'Table 04', name: 'Table 04', status: 'Standby', users: [] },
+          { id: 'Table 05', name: 'Table 05', status: 'Live', users: [] }
+        ];
+      }
+
+      function ensureServerTables(state) {
+        if (Array.isArray(state.tables) && state.tables.length) {
+          return state.tables.map(function (table) {
+            return {
+              id: table.id || 'Table 01',
+              name: table.name || table.id || 'Table 01',
+              status: table.status || 'Live',
+              users: Array.isArray(table.users) ? table.users : []
+            };
+          });
+        }
+
+        return createDefaultTables();
+      }
+
+      async function syncServerState(userName, topic, tableId) {
+        const activeTableId = tableId || getSelectedTableId();
+        const enteredName = fullNameInput.value.trim() || userName || '';
+        const enteredEmail = emailInput.value.trim() || '';
+        const enteredPhone = phoneInput.value.trim() || '';
+        const enteredNric = nricInput.value.trim();
+        const hasMeaningfulEntry = enteredName || enteredEmail || enteredPhone || enteredNric;
+
+        if (!hasMeaningfulEntry) {
+          return;
+        }
+
+        await window.topicTableApi.syncUser({
+          tableId: activeTableId,
+          userName: enteredName || userName || 'Guest user',
+          email: enteredEmail,
+          phone: enteredPhone,
+          nric: enteredNric,
+          selection: topic === 'music' ? 'Music mode' : topic
+        });
+      }
+
+      async function removeUserFromServerState(userName, tableId, options) {
+        const normalizedUserName = (userName || '').trim();
+        if (!normalizedUserName) {
+          return false;
+        }
+
+        await window.topicTableApi.removeUser({
+          tableId: getSessionTable(tableId),
+          userName: normalizedUserName
+        }, options || {});
+        return true;
+      }
+
+      async function resetTabletSession(options) {
+        const settings = options || {};
+        if (!settings.skipServerRemoval) {
+          await removeUserFromServerState(getSessionUserName(), currentSessionTableId);
+        }
+
+        currentSessionUserName = '';
+        currentSessionTableId = '';
+        contactInfo.name = '';
+        contactInfo.email = '';
+        contactInfo.phone = '';
+        closeUserModal();
+        loginView.classList.remove('hidden');
+        topicView.classList.add('hidden');
+        loginForm.reset();
+        loginMessage.textContent = settings.message || '';
+        queueMessage.textContent = '';
+        fullNameInput.focus();
+      }
+
+      function syncUserDetailsPanel(otherUsers) {
+        if (userDetailsPanel.classList.contains('hidden')) {
+          return;
+        }
+
+        const selectedUser = otherUsers.find(function (user) {
+          return (user.name || 'Guest user') === sidebarUserName.textContent;
+        });
+
+        if (!selectedUser) {
+          closeUserModal();
+          return;
+        }
+
+        sidebarUserName.textContent = selectedUser.name || 'Guest user';
+        sidebarUserEmail.textContent = selectedUser.email || 'Not provided';
+        sidebarUserPhone.textContent = selectedUser.phone || 'Not provided';
+        sidebarUserNric.textContent = selectedUser.nric || 'Not provided';
+      }
+
+      async function syncTabletUsersFromServer(serverState) {
+        if (topicView.classList.contains('hidden')) {
+          return;
+        }
+
+        const tableId = getSessionTable();
+        const state = serverState || await getServerState();
+        const tables = ensureServerTables(state);
+        const activeTable = tables.find(function (table) {
+          return table.id === tableId;
+        });
+        const currentUserName = getSessionUserName();
+        const users = activeTable && Array.isArray(activeTable.users) ? activeTable.users : [];
+        const currentUserStillPresent = users.some(function (user) {
+          return (user && user.name ? user.name : '').trim() === currentUserName;
+        });
+
+        if (currentUserName && !currentUserStillPresent) {
+          await resetTabletSession({ skipServerRemoval: true, message: 'You were removed from this table.' });
+          return;
+        }
+
+        await renderUsersList(state);
+      }
+
+      async function showTopicView(userName) {
+        loginView.classList.add('hidden');
+        topicView.classList.remove('hidden');
+        welcomeName.textContent = `Welcome, ${userName}!`;
+
+        const enteredName = fullNameInput.value.trim() || contactInfo.name;
+        const enteredEmail = emailInput.value.trim() || contactInfo.email;
+        const enteredPhone = phoneInput.value.trim() || contactInfo.phone;
+
+        currentSessionUserName = enteredName || userName;
+        currentSessionTableId = getSelectedTableId();
+        contactInfo.name = currentSessionUserName;
+        contactInfo.email = enteredEmail;
+        contactInfo.phone = enteredPhone;
+
+        contactName.textContent = `Name: ${enteredName}`;
+        contactEmail.textContent = `Email: ${enteredEmail}`;
+        contactPhone.textContent = `Phone: ${enteredPhone}`;
+        selectedTableDisplay.textContent = 'Table: ' + getSelectedTableId();
+        await syncServerState(userName, 'Signed in', getSelectedTableId());
+        await renderUsersList();
+      }
+
+      async function handleLogin(source) {
+        const enteredNric = nricInput.value.trim();
+
+        if (source === 'nric' && !enteredNric) {
+          loginMessage.textContent = 'Please enter your NRIC to continue.';
+          return;
+        }
+
+        const userName = source === 'face' ? (fullNameInput.value.trim() || 'Guest User') : (fullNameInput.value.trim() || enteredNric.toUpperCase());
+        loginMessage.textContent = source === 'face'
+          ? 'Face scan complete. You are now signed in.'
+          : 'NRIC verified. You are now signed in.';
+        await showTopicView(userName);
+      }
+
+      async function setTopic(topic) {
+        const label = topic === 'music' ? 'Music' : topic;
+        const previousState = await getStoredState(getSelectedTableId());
+        const queue = [label, ...(Array.isArray(previousState.queue) ? previousState.queue : []).filter(function (item) {
+          return item !== label;
+        })].slice(0, 6);
+        const nextState = {
+          activeMode: topic === 'music' ? 'music' : 'topic',
+          activeTopic: label,
+          queue: queue,
+          musicEmbedUrl: '',
+          musicProvider: '',
+          musicSourceUrl: ''
+        };
+
+        selectedTopicLabel.textContent = topic === 'music'
+          ? 'Music mode active: relaxing playlist shared with the group.'
+          : `Selected topic: ${topic}`;
+
+        if (topic === 'music') {
+          displayMessage.textContent = 'Music mode is active. Search YouTube below to play a song on the hologram.';
+          previewTitle.textContent = 'Music mode active';
+          previewSubtitle.textContent = 'Pick a YouTube result and it will play on the hologram.';
+        } else {
+          displayMessage.textContent = `${topic} is now being shared with the hologram.`;
+          previewTitle.textContent = `${topic} is live`;
+          previewSubtitle.textContent = 'Everyone can now join the conversation around this topic.';
+        }
+
+        await persistSharedState(nextState, getSelectedTableId());
+        await syncServerState(contactInfo.name, topic, getSelectedTableId());
+      }
+
+      async function shareMusicVideo(video) {
+        if (!video) {
+          musicSearchMessage.textContent = 'Unable to play this result. Please try another one.';
+          return;
+        }
+
+        const title = (video.title || '').trim() || 'YouTube';
+        const embedUrl = (video.embedUrl || '').trim();
+        const watchUrl = (video.watchUrl || '').trim();
+        if (!embedUrl) {
+          musicSearchMessage.textContent = 'Unable to play this result. Please try another one.';
+          return;
+        }
+
+        const nextState = {
+          activeMode: 'music',
+          activeTopic: title,
+          queue: [title],
+          musicEmbedUrl: embedUrl,
+          musicProvider: 'YouTube',
+          musicSourceUrl: watchUrl
+        };
+
+        await persistSharedState(nextState, getSelectedTableId());
+        await syncServerState(contactInfo.name, title, getSelectedTableId());
+
+        selectedTopicLabel.textContent = 'YouTube is now playing: ' + title;
+        displayMessage.textContent = 'The selected YouTube song is now on the hologram.';
+        previewTitle.textContent = 'Now playing on hologram';
+        previewSubtitle.textContent = title;
+        queueMessage.textContent = 'Playing: ' + title;
+        musicSearchMessage.textContent = 'Now playing on hologram.';
+      }
+
+      function renderYouTubeResults(items) {
+        musicSearchResults.innerHTML = '';
+        if (!Array.isArray(items) || items.length === 0) {
+          musicSearchResults.innerHTML = '<p class="empty-state">No YouTube results found. Try a different search.</p>';
+          return;
+        }
+
+        items.forEach(function (item) {
+          const row = document.createElement('div');
+          row.className = 'music-result-item';
+          if (item.embeddable === false) {
+            row.classList.add('unplayable');
+          }
+
+          const title = document.createElement('p');
+          title.className = 'music-result-title';
+          title.textContent = item.title || 'YouTube video';
+
+          if (item.embeddable === false) {
+            const note = document.createElement('p');
+            note.className = 'music-result-note';
+            note.textContent = 'Cannot play inside hologram embed.';
+            row.appendChild(note);
+          }
+
+          const actions = document.createElement('div');
+          actions.className = 'music-result-actions';
+
+          const playBtn = document.createElement('button');
+          playBtn.type = 'button';
+          playBtn.className = 'btn btn-primary small';
+          playBtn.textContent = item.embeddable === false ? 'Unavailable on hologram' : 'Play on hologram';
+          playBtn.disabled = item.embeddable === false;
+          playBtn.addEventListener('click', async function () {
+            await shareMusicVideo(item);
+          });
+
+          const openBtn = document.createElement('a');
+          openBtn.className = 'btn btn-secondary small';
+          openBtn.textContent = 'Open YouTube';
+          openBtn.href = item.watchUrl || '#';
+          openBtn.target = '_blank';
+          openBtn.rel = 'noopener noreferrer';
+
+          actions.appendChild(playBtn);
+          actions.appendChild(openBtn);
+          row.appendChild(title);
+          row.appendChild(actions);
+          musicSearchResults.appendChild(row);
+        });
+      }
+
+      async function searchYouTubeMusic() {
+        const query = musicSearchQueryInput.value.trim();
+        if (!query) {
+          musicSearchMessage.textContent = 'Type a song or artist first.';
+          musicSearchResults.innerHTML = '';
+          return;
+        }
+
+        musicSearchBtn.disabled = true;
+        musicSearchMessage.textContent = 'Searching YouTube...';
+        musicSearchResults.innerHTML = '';
+
+        try {
+          const payload = await window.topicTableApi.searchYouTube(query);
+          const items = payload && Array.isArray(payload.items) ? payload.items : [];
+          renderYouTubeResults(items);
+          if (payload && payload.message) {
+            musicSearchMessage.textContent = payload.message;
+          } else {
+            musicSearchMessage.textContent = items.length
+              ? 'Choose a result to play it on the hologram.'
+              : 'No results found. Try another search.';
+          }
+        } catch (error) {
+          musicSearchMessage.textContent = 'Could not load YouTube results right now. Try again.';
+          musicSearchResults.innerHTML = '';
+        } finally {
+          musicSearchBtn.disabled = false;
+        }
+      }
+
+      async function queueCustomTopic() {
+        const topic = customTopicInput.value.trim();
+        if (!topic) {
+          queueMessage.textContent = 'Please type a topic first.';
+          return;
+        }
+
+        const previousState = await getStoredState(getSelectedTableId());
+        const queue = [topic, ...(Array.isArray(previousState.queue) ? previousState.queue : []).filter(function (item) {
+          return item !== topic;
+        })].slice(0, 6);
+        const nextState = {
+          activeMode: 'topic',
+          activeTopic: topic,
+          queue: queue
+        };
+
+        await persistSharedState(nextState, getSelectedTableId());
+        await syncServerState(fullNameInput.value.trim() || contactInfo.name, topic, getSelectedTableId());
+        selectedTopicLabel.textContent = `Queued topic: ${topic}`;
+        displayMessage.textContent = `${topic} has been added to the queue.`;
+        previewTitle.textContent = `${topic} queued`;
+        previewSubtitle.textContent = 'The hologram will show this topic next.';
+        queueMessage.textContent = `${topic} added to queue.`;
+        customTopicInput.value = '';
+      }
+
+      async function moveToNextTopic() {
+        const previousState = await getStoredState(getSelectedTableId());
+        const queue = Array.isArray(previousState.queue) ? previousState.queue.slice() : [];
+        if (queue.length === 0) {
+          queueMessage.textContent = 'No queued topics to move to.';
+          return;
+        }
+
+        const nextTopic = queue.shift();
+        const nextState = {
+          activeMode: 'topic',
+          activeTopic: nextTopic,
+          queue: queue
+        };
+
+        await persistSharedState(nextState, getSelectedTableId());
+        await syncServerState(fullNameInput.value.trim() || contactInfo.name, nextTopic, getSelectedTableId());
+        selectedTopicLabel.textContent = `Now showing: ${nextTopic}`;
+        displayMessage.textContent = `${nextTopic} is now shown on the hologram.`;
+        previewTitle.textContent = `${nextTopic}`;
+        previewSubtitle.textContent = 'This topic is now active for the group.';
+        queueMessage.textContent = `Moved to ${nextTopic}.`;
+      }
+
+      async function clearQueue() {
+        const tableId = getSelectedTableId();
+        await persistSharedState({ activeMode: 'topic', activeTopic: '', queue: [] }, tableId);
+        await syncServerState(fullNameInput.value.trim() || contactInfo.name, 'Queue cleared', tableId);
+        selectedTopicLabel.textContent = 'Queue cleared.';
+        displayMessage.textContent = 'The queue has been cleared.';
+        previewTitle.textContent = 'Queue cleared';
+        previewSubtitle.textContent = 'No topics are waiting to be shown.';
+        queueMessage.textContent = 'Queue cleared.';
+      }
+
+      async function renderUsersList(serverState) {
+        const tableId = getSelectedTableId();
+        const state = serverState || await getServerState();
+        const tables = ensureServerTables(state);
+        const activeTable = tables.find(function (table) {
+          return table.id === tableId;
+        });
+
+        if (!activeTable || !Array.isArray(activeTable.users)) {
+          usersList.innerHTML = '<p class="empty-state">No other users yet.</p>';
+          closeUserModal();
+          return;
+        }
+
+        const currentUserName = getSessionUserName();
+        const otherUsers = activeTable.users.filter(function (user) {
+          return user.name !== currentUserName;
+        });
+
+        if (otherUsers.length === 0) {
+          usersList.innerHTML = '<p class="empty-state">No other users yet.</p>';
+          closeUserModal();
+          return;
+        }
+
+        usersList.innerHTML = '';
+        otherUsers.forEach(function (user, index) {
+          const userButton = document.createElement('button');
+          userButton.className = 'user-link-btn';
+          userButton.textContent = user.name || 'Guest user';
+          userButton.onclick = function () {
+            showUserModal(user);
+          };
+          usersList.appendChild(userButton);
+        });
+
+        syncUserDetailsPanel(otherUsers);
+      }
+
+      function showUserModal(user) {
+        sidebarUserName.textContent = user.name || 'Guest user';
+        sidebarUserEmail.textContent = user.email || 'Not provided';
+        sidebarUserPhone.textContent = user.phone || 'Not provided';
+        sidebarUserNric.textContent = user.nric || 'Not provided';
+        userDetailsPanel.classList.remove('hidden');
+      }
+
+      function closeUserModal() {
+        userDetailsPanel.classList.add('hidden');
+      }
+
+      document.querySelectorAll('.table-option-btn').forEach(function (button) {
+        button.addEventListener('click', async function () {
+          setSelectedTableId(button.dataset.table);
+          if (!topicView.classList.contains('hidden')) {
+            currentSessionTableId = getSelectedTableId();
+            await syncTabletUsersFromServer();
+          }
+        });
+      });
+
+      loginForm.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        await handleLogin('nric');
+      });
+
+      faceScanBtn.addEventListener('click', async function () {
+        await handleLogin('face');
+      });
+
+      logoutBtn.addEventListener('click', async function () {
+        await resetTabletSession({ message: '' });
+      });
+
+      window.addEventListener('serverStateUpdated', async function () {
+        await syncTabletUsersFromServer();
+      });
+
+      window.addEventListener('pagehide', function () {
+        if (!topicView.classList.contains('hidden')) {
+          window.topicTableApi.removeUser({
+            tableId: currentSessionTableId || getSelectedTableId(),
+            userName: getSessionUserName()
+          }, { beacon: true });
+        }
+      });
+
+      setSelectedTableId(getSelectedTableId());
+
+      document.querySelectorAll('.topic-btn').forEach(function (button) {
+        button.addEventListener('click', async function () {
+          await setTopic(button.dataset.topic);
+        });
+      });
+
+      addTopicBtn.addEventListener('click', async function () {
+        await queueCustomTopic();
+      });
+
+      nextTopicBtn.addEventListener('click', async function () {
+        await moveToNextTopic();
+      });
+
+      clearQueueBtn.addEventListener('click', async function () {
+        await clearQueue();
+      });
+
+      musicBtn.addEventListener('click', async function () {
+        await setTopic('music');
+        musicSearchPanel.classList.remove('hidden');
+        if (!musicSearchQueryInput.value.trim()) {
+          musicSearchQueryInput.focus();
+        }
+      });
+
+      musicSearchBtn.addEventListener('click', async function () {
+        await searchYouTubeMusic();
+      });
+
+      musicSearchQueryInput.addEventListener('keydown', async function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          await searchYouTubeMusic();
+        }
+      });
+
+      window.topicTableApi.connectUpdates(async function (bundle) {
+        await syncTabletUsersFromServer(bundle.serverState || {});
+      });
+    </script>
+  </body>
+</html>

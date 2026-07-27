@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hologram View</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <div class="panel">
+        <span class="status">Hologram Mode</span>
+        <h1>Shared Topic Display</h1>
+        <p>
+          This view shows the active topic on a central display so everyone can follow the discussion.
+        </p>
+      </div>
+
+      <div class="panel">
+        <h2>Select a hologram server</h2>
+        <div class="table-option-buttons">
+          <button type="button" class="table-option-btn active" data-table="Table 01">Server 1</button>
+          <button type="button" class="table-option-btn" data-table="Table 02">Server 2</button>
+          <button type="button" class="table-option-btn" data-table="Table 03">Server 3</button>
+          <button type="button" class="table-option-btn" data-table="Table 04">Server 4</button>
+          <button type="button" class="table-option-btn" data-table="Table 05">Server 5</button>
+        </div>
+        <p id="selectedServerMessage" class="message">Showing Table 01</p>
+      </div>
+
+      <div class="projection-stage">
+        <div class="projection-toolbar">
+          <button id="fullscreenBtn" type="button" class="btn btn-secondary small">Full Screen</button>
+        </div>
+        <div class="projection-screen">
+          <div class="projection-glow"></div>
+          <div class="projection-content">
+            <p class="projection-label">LIVE PROJECTION</p>
+            <h2 id="projectionTitle">Waiting for a topic</h2>
+            <p id="projectionSubtitle">The next choice from the tablets will appear here for everyone to see.</p>
+            <div id="musicEmbedContainer" class="music-embed-container hidden">
+              <iframe
+                id="musicEmbedFrame"
+                class="music-embed-frame"
+                title="Shared music player"
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                loading="lazy"
+                referrerpolicy="strict-origin-when-cross-origin"
+              ></iframe>
+            </div>
+            <p id="musicFallbackText" class="music-fallback-text hidden">
+              If this video cannot play here, open it directly:
+              <a id="musicFallbackLink" href="#" target="_blank" rel="noopener noreferrer">Open in YouTube</a>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="small-card">
+          <h3>Current Display</h3>
+          <p id="currentDisplay">Waiting for a tablet selection.</p>
+        </div>
+        <div class="small-card">
+          <h3>Topic Queue</h3>
+          <ul id="topicQueue" class="queue-list">
+            <li>No topics queued yet.</li>
+          </ul>
+        </div>
+        <div class="small-card">
+          <h3>Tablet Feedback</h3>
+          <p>Responses from the tablets are now visible here in real time.</p>
+        </div>
+        <div class="small-card">
+          <h3>Group Interaction</h3>
+          <p>The central screen helps everyone stay connected and engaged.</p>
+        </div>
+      </div>
+
+      <p style="margin-top: 20px;"><a class="btn btn-secondary" href="index.html" data-back-home>Back to Home</a></p>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="auth.js"></script>
+    <script>
+      const selectedHologramKey = 'topicTableSelectedHologram';
+      const currentDisplay = document.getElementById('currentDisplay');
+      const topicQueue = document.getElementById('topicQueue');
+      const projectionTitle = document.getElementById('projectionTitle');
+      const projectionSubtitle = document.getElementById('projectionSubtitle');
+      const musicEmbedContainer = document.getElementById('musicEmbedContainer');
+      const musicEmbedFrame = document.getElementById('musicEmbedFrame');
+      const musicFallbackText = document.getElementById('musicFallbackText');
+      const musicFallbackLink = document.getElementById('musicFallbackLink');
+      const selectedServerMessage = document.getElementById('selectedServerMessage');
+      const fullscreenBtn = document.getElementById('fullscreenBtn');
+      const projectionStage = document.querySelector('.projection-stage');
+      const projectionScreen = document.querySelector('.projection-screen');
+      const projectionContent = document.querySelector('.projection-content');
+      const projectionLabel = document.querySelector('.projection-label');
+
+      function applyProjectionFullscreenLayout(isProjectionFullscreen) {
+        if (isProjectionFullscreen) {
+          projectionScreen.style.display = 'flex';
+          projectionScreen.style.flex = '1 1 auto';
+          projectionScreen.style.width = '100%';
+          projectionScreen.style.height = '100%';
+          projectionScreen.style.minHeight = '100vh';
+          projectionScreen.style.borderRadius = '0';
+          projectionScreen.style.border = 'none';
+          projectionScreen.style.boxShadow = 'inset 0 0 60px rgba(94, 234, 212, 0.18)';
+
+          projectionContent.style.flex = '1 1 auto';
+          projectionContent.style.minHeight = '100vh';
+          projectionContent.style.height = '100vh';
+          projectionContent.style.padding = '40px 60px';
+
+          projectionTitle.style.fontSize = 'clamp(3.5rem, 9vw, 7rem)';
+          projectionTitle.style.marginBottom = '0';
+          projectionSubtitle.style.display = 'none';
+          projectionLabel.style.display = 'none';
+          return;
+        }
+
+        projectionScreen.style.display = '';
+        projectionScreen.style.flex = '';
+        projectionScreen.style.width = '';
+        projectionScreen.style.height = '';
+        projectionScreen.style.minHeight = '';
+        projectionScreen.style.borderRadius = '';
+        projectionScreen.style.border = '';
+        projectionScreen.style.boxShadow = '';
+
+        projectionContent.style.flex = '';
+        projectionContent.style.minHeight = '';
+        projectionContent.style.height = '';
+        projectionContent.style.padding = '';
+
+        projectionTitle.style.fontSize = '';
+        projectionTitle.style.marginBottom = '';
+        projectionSubtitle.style.display = '';
+        projectionLabel.style.display = '';
+      }
+
+      function getSelectedHologramTable() {
+        try {
+          return JSON.parse(localStorage.getItem(selectedHologramKey) || '{}').tableId || 'Table 01';
+        } catch (error) {
+          return 'Table 01';
+        }
+      }
+
+      function setSelectedHologramTable(tableId) {
+        localStorage.setItem(selectedHologramKey, JSON.stringify({ tableId: tableId }));
+        selectedServerMessage.textContent = 'Showing ' + tableId;
+        document.querySelectorAll('.table-option-btn').forEach(function (button) {
+          button.classList.toggle('active', button.dataset.table === tableId);
+        });
+        renderSharedState();
+      }
+
+      async function readSharedState() {
+        try {
+          return await window.topicTableApi.getSharedTableState(getSelectedHologramTable());
+        } catch (error) {
+          return {};
+        }
+      }
+
+      async function renderSharedState(sharedTableState) {
+        const state = sharedTableState || await readSharedState();
+        const activeTopic = state.activeTopic || 'No topic yet';
+        const queueItems = Array.isArray(state.queue) && state.queue.length > 0 ? state.queue : ['No topics queued yet.'];
+        const isMusic = state.activeMode === 'music';
+        const musicEmbedUrl = state.musicEmbedUrl || '';
+        const musicProvider = state.musicProvider || 'Music';
+        const musicSourceUrl = state.musicSourceUrl || '';
+
+        function normalizeMusicEmbedUrl(rawUrl) {
+          const normalized = (rawUrl || '').trim();
+          if (!normalized) {
+            return '';
+          }
+
+          try {
+            const parsed = new URL(normalized);
+            const host = parsed.hostname.replace(/^www\./, '').toLowerCase();
+            if (host !== 'youtube.com' && host !== 'm.youtube.com' && host !== 'youtube-nocookie.com') {
+              return normalized;
+            }
+
+            const segments = parsed.pathname.split('/').filter(Boolean);
+            let videoId = '';
+            if (segments[0] === 'embed' && segments[1]) {
+              videoId = segments[1];
+            } else if (parsed.pathname === '/watch') {
+              videoId = parsed.searchParams.get('v') || '';
+            }
+
+            if (!videoId) {
+              return normalized;
+            }
+
+            return 'https://www.youtube-nocookie.com/embed/'
+              + videoId
+              + '?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1';
+          } catch (error) {
+            return normalized;
+          }
+        }
+
+        const resolvedEmbedUrl = normalizeMusicEmbedUrl(musicEmbedUrl);
+
+        currentDisplay.textContent = isMusic
+          ? (resolvedEmbedUrl ? musicProvider + ' player is now available on the hologram.' : `Music mode is live: ${activeTopic}`)
+          : `${activeTopic} is now shown on the hologram.`;
+
+        projectionTitle.textContent = isMusic ? activeTopic : activeTopic;
+        projectionSubtitle.textContent = isMusic
+          ? (resolvedEmbedUrl ? 'Play the shared track or playlist directly from the hologram.' : 'The group can relax and enjoy the shared soundtrack.')
+          : 'Everyone can now join the conversation around this topic.';
+
+        if (isMusic && resolvedEmbedUrl) {
+          musicEmbedFrame.src = resolvedEmbedUrl;
+          musicEmbedContainer.classList.remove('hidden');
+          if (musicSourceUrl) {
+            musicFallbackLink.href = musicSourceUrl;
+            musicFallbackText.classList.remove('hidden');
+          } else {
+            musicFallbackLink.href = '#';
+            musicFallbackText.classList.add('hidden');
+          }
+        } else {
+          musicEmbedFrame.src = '';
+          musicEmbedContainer.classList.add('hidden');
+          musicFallbackLink.href = '#';
+          musicFallbackText.classList.add('hidden');
+        }
+
+        topicQueue.innerHTML = '';
+        queueItems.forEach(function (item) {
+          const listItem = document.createElement('li');
+          listItem.textContent = item;
+          topicQueue.appendChild(listItem);
+        });
+      }
+
+      document.querySelectorAll('.table-option-btn').forEach(function (button) {
+        button.addEventListener('click', function () {
+          setSelectedHologramTable(button.dataset.table);
+        });
+      });
+
+      async function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+          await projectionStage.requestFullscreen();
+          syncFullscreenButton();
+          return;
+        }
+
+        await document.exitFullscreen();
+        syncFullscreenButton();
+      }
+
+      function syncFullscreenButton() {
+        const isProjectionFullscreen = document.fullscreenElement === projectionStage;
+        projectionStage.classList.toggle('is-projection-fullscreen', isProjectionFullscreen);
+        applyProjectionFullscreenLayout(isProjectionFullscreen);
+        fullscreenBtn.textContent = isProjectionFullscreen ? 'Exit Full Screen' : 'Full Screen';
+      }
+
+      fullscreenBtn.addEventListener('click', function () {
+        toggleFullscreen().catch(function () {
+          // Ignore fullscreen permission or browser support failures.
+        });
+      });
+
+      document.addEventListener('fullscreenchange', syncFullscreenButton);
+
+      setSelectedHologramTable(getSelectedHologramTable());
+      syncFullscreenButton();
+
+      window.topicTableApi.connectUpdates(async function (bundle) {
+        const sharedState = bundle.sharedState || {};
+        await renderSharedState(sharedState[getSelectedHologramTable()] || {});
+      });
+    </script>
+  </body>
+</html>

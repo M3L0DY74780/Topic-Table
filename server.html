@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Main Server View</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <div class="panel">
+        <span class="status">Main Server Mode</span>
+        <h1>Control Center for All Tables</h1>
+        <p>
+          This admin view lets the team monitor every table, inspect the signed-in users, review the shared hologram display,
+          and track the topics each tablet has selected.
+        </p>
+      </div>
+
+      <div class="server-layout">
+        <aside class="panel server-sidebar">
+          <h2>Tables</h2>
+          <div id="tableList" class="table-list"></div>
+        </aside>
+
+        <main>
+          <div class="panel">
+            <div class="welcome-row">
+              <div>
+                <span class="status">Selected table</span>
+                <h2 id="selectedTableTitle">Table 01</h2>
+              </div>
+              <a class="btn btn-secondary small" href="index.html" data-back-home>Back to Home</a>
+            </div>
+
+            <div class="metric-row">
+              <div class="metric">
+                <strong id="tableStatus">Live</strong>
+                Status
+              </div>
+              <div class="metric">
+                <strong id="tableSummary">1 user(s) connected</strong>
+                Users
+              </div>
+              <div class="metric">
+                <strong id="tableActivity">0 actions</strong>
+                Activity
+              </div>
+            </div>
+
+            <div class="grid">
+              <div class="small-card">
+                <h3>Users at this Table</h3>
+                <div id="userList"></div>
+              </div>
+              <div class="small-card">
+                <h3>Table Details</h3>
+                <label for="tableSelector" class="detail-label">Choose a tablet</label>
+                <select id="tableSelector" class="detail-select"></select>
+                <label for="userSelector" class="detail-label">View user device status</label>
+                <select id="userSelector" class="detail-select"></select>
+                <p id="tableDetails">No details available.</p>
+                <div id="healthGrid" class="health-grid"></div>
+              </div>
+            </div>
+
+            <div class="panel inner-panel">
+              <h3>Manual Controls</h3>
+              <div class="manual-controls">
+                <input id="manualUserName" placeholder="User name" />
+                <input id="manualEmail" placeholder="Email" />
+                <input id="manualPhone" placeholder="Phone" />
+                <input id="manualTopic" placeholder="Topic or music" />
+                <button id="manualAddUserBtn" class="btn btn-primary">Add user info</button>
+                <button id="manualTopicBtn" class="btn btn-secondary">Change topic</button>
+                <button id="clearTopicBtn" class="btn btn-warning">Clear topic</button>
+                <button id="clearHistoryBtn" class="btn btn-warning">Clear history</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="grid">
+              <div class="small-card">
+                <h3>Hologram Preview</h3>
+                <div class="projection-preview">
+                  <p id="serverDisplay">Waiting for tablet input.</p>
+                  <p id="serverQueue" class="contact-line">No topics queued yet.</p>
+                </div>
+              </div>
+              <div class="small-card">
+                <h3>Topic History</h3>
+                <ul id="historyList" class="history-list"></ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="grid">
+              <div class="small-card">
+                <h3>System Alerts</h3>
+                <div id="alertList" class="alert-list"></div>
+              </div>
+              <div class="small-card">
+                <h3>Live Connection Graph</h3>
+                <div class="graph-card">
+                  <div id="graphBars" class="graph-bars"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="auth.js"></script>
+    <script>
+      const tableList = document.getElementById('tableList');
+      const selectedTableTitle = document.getElementById('selectedTableTitle');
+      const tableStatus = document.getElementById('tableStatus');
+      const tableSummary = document.getElementById('tableSummary');
+      const tableActivity = document.getElementById('tableActivity');
+      const tableDetails = document.getElementById('tableDetails');
+      const healthGrid = document.getElementById('healthGrid');
+      const userList = document.getElementById('userList');
+      const serverDisplay = document.getElementById('serverDisplay');
+      const serverQueue = document.getElementById('serverQueue');
+      const historyList = document.getElementById('historyList');
+      const alertList = document.getElementById('alertList');
+      const graphBars = document.getElementById('graphBars');
+      const tableSelector = document.getElementById('tableSelector');
+      const userSelector = document.getElementById('userSelector');
+      const manualUserName = document.getElementById('manualUserName');
+      const manualEmail = document.getElementById('manualEmail');
+      const manualPhone = document.getElementById('manualPhone');
+      const manualTopic = document.getElementById('manualTopic');
+      const manualAddUserBtn = document.getElementById('manualAddUserBtn');
+      const manualTopicBtn = document.getElementById('manualTopicBtn');
+      const clearTopicBtn = document.getElementById('clearTopicBtn');
+      const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+      let selectedUserIndex = null;
+      let selectedTableId = 'Table 01';
+      let latestServerState = { tables: [] };
+      let latestSharedState = {};
+
+      function createDefaultTables() {
+        return [
+          { id: 'Table 01', name: 'Table 01', status: 'Live', users: [] },
+          { id: 'Table 02', name: 'Table 02', status: 'Live', users: [] },
+          { id: 'Table 03', name: 'Table 03', status: 'Live', users: [] },
+          { id: 'Table 04', name: 'Table 04', status: 'Standby', users: [] },
+          { id: 'Table 05', name: 'Table 05', status: 'Live', users: [] }
+        ];
+      }
+
+      function getActiveTable(state) {
+        const tables = Array.isArray(state.tables) && state.tables.length ? state.tables : [];
+        const activeTableId = selectedTableId || (tables[0] ? tables[0].id : 'Table 01');
+        return tables.find(function (table) {
+          return table.id === activeTableId;
+        }) || tables[0] || null;
+      }
+
+      async function getServerState() {
+        try {
+          return await window.topicTableApi.getServerState();
+        } catch (error) {
+          return { tables: createDefaultTables(), history: [] };
+        }
+      }
+
+      async function getSharedStateMap() {
+        try {
+          return await window.topicTableApi.getSharedStateMap();
+        } catch (error) {
+          return {};
+        }
+      }
+
+      function renderTableSelector(state) {
+        const tables = Array.isArray(state.tables) && state.tables.length ? state.tables : [];
+        tableSelector.innerHTML = '';
+        tables.forEach(function (table) {
+          const option = document.createElement('option');
+          option.value = table.id;
+          option.textContent = table.name;
+          tableSelector.appendChild(option);
+        });
+        if (tables.length) {
+          tableSelector.value = selectedTableId || tables[0].id;
+        }
+      }
+
+      function renderTableList(state) {
+        const tables = Array.isArray(state.tables) && state.tables.length ? state.tables : [];
+        tableList.innerHTML = '';
+
+        tables.forEach(function (table) {
+          const button = document.createElement('button');
+          button.className = 'table-btn' + (table.id === selectedTableId ? ' active' : '');
+          const statusClass = table.status === 'Live' ? 'live' : 'standby';
+          const userCount = Array.isArray(table.users) ? table.users.length : 0;
+          button.innerHTML = '<div class="table-topline"><strong>' + table.name + '</strong><span class="status-pill ' + statusClass + '"><span class="status-dot"></span>' + table.status + '</span></div><div class="table-meta">' + userCount + ' connected</div>';
+          button.addEventListener('click', function () {
+            selectedTableId = table.id;
+            selectedUserIndex = null;
+            renderTableList(state);
+            renderServerView(state, latestSharedState);
+          });
+          tableList.appendChild(button);
+        });
+      }
+
+      function renderUserSelector(state) {
+        const activeTable = getActiveTable(state);
+        const users = activeTable && Array.isArray(activeTable.users) ? activeTable.users : [];
+        userSelector.innerHTML = '<option value="">-- Table overview --</option>';
+        users.forEach(function (user, index) {
+          const option = document.createElement('option');
+          option.value = index;
+          option.textContent = user.name || 'Guest user';
+          userSelector.appendChild(option);
+        });
+        // Restore the previously selected user if they still exist
+        if (selectedUserIndex !== null && users[selectedUserIndex]) {
+          userSelector.value = selectedUserIndex;
+        } else {
+          userSelector.value = '';
+          selectedUserIndex = null;
+        }
+      }
+
+      function renderServerView(state, sharedStateMap) {
+        const activeTable = getActiveTable(state);
+
+        renderTableSelector(state);
+        renderUserSelector(state);
+
+        if (!activeTable) {
+          selectedTableTitle.textContent = 'No table selected';
+          tableStatus.textContent = 'Offline';
+          tableSummary.textContent = 'No data available yet.';
+          userList.innerHTML = '';
+          historyList.innerHTML = '';
+          serverDisplay.textContent = 'Waiting for tablet input.';
+          serverQueue.textContent = 'No topics queued yet.';
+          return;
+        }
+
+        const users = Array.isArray(activeTable.users) ? activeTable.users : [];
+        const history = Array.isArray(state.history) ? state.history.filter(function (entry) {
+          return entry && entry.tableId === activeTable.id;
+        }) : [];
+
+        selectedTableTitle.textContent = activeTable.name;
+        tableStatus.textContent = activeTable.status;
+        tableSummary.textContent = users.length + ' user(s) connected';
+        tableActivity.textContent = history.length + ' actions';
+        tableDetails.textContent = 'This table is currently ' + activeTable.status.toLowerCase() + ' and is monitoring shared topic activity.';
+
+        userList.innerHTML = '';
+        if (!users.length) {
+          userList.innerHTML = '<p class="empty-state">No users recorded yet for this tablet.</p>';
+        } else {
+          users.forEach(function (user, index) {
+            const card = document.createElement('div');
+            card.className = 'user-card';
+            card.innerHTML = '<div class="user-card-top"><h4>' + (user.name || 'Guest user') + '</h4><button type="button" class="user-remove-btn" data-index="' + index + '">Remove</button></div>' +
+              '<p>NRIC: ' + (user.nric || 'N/A') + '</p>' +
+              '<p>Contact: ' + (user.email || 'N/A') + '</p>' +
+              '<p>Last choice: ' + (user.lastSelection || 'No selection yet') + '</p>';
+            card.querySelector('.user-remove-btn').addEventListener('click', function () {
+              removeUserFromActiveTable(index);
+            });
+            userList.appendChild(card);
+          });
+        }
+
+        let healthItems = [];
+        if (selectedUserIndex !== null && Array.isArray(activeTable.users) && activeTable.users[selectedUserIndex]) {
+          const user = activeTable.users[selectedUserIndex];
+          const userBattery = Math.floor(Math.random() * 30) + 60;
+          const userSignal = ['Weak', 'Fair', 'Good', 'Strong'][Math.floor(Math.random() * 4)];
+          healthItems = [
+            { label: 'User', value: user.name || 'Guest user' },
+            { label: 'Tablet Status', value: activeTable.status === 'Live' ? 'Online' : 'Standby' },
+            { label: 'Hologram Link', value: 'Connected' },
+            { label: 'Battery', value: userBattery + '%' },
+            { label: 'Signal', value: userSignal }
+          ];
+        } else {
+          healthItems = [
+            { label: 'Tablet Status', value: activeTable.status === 'Live' ? 'Online' : 'Standby' },
+            { label: 'Hologram Link', value: 'Connected' },
+            { label: 'Battery', value: '87%' },
+            { label: 'Signal', value: 'Strong' }
+          ];
+        }
+        healthGrid.innerHTML = '';
+        healthItems.forEach(function (item) {
+          const div = document.createElement('div');
+          div.className = 'health-item';
+          div.innerHTML = '<strong>' + item.label + '</strong>' + item.value;
+          healthGrid.appendChild(div);
+        });
+
+        const alerts = [
+          { title: 'Connection stable', text: 'All devices are communicating normally.' },
+          { title: 'Topic update received', text: activeTable.name + ' has sent a new topic selection.' },
+          { title: 'Server sync active', text: 'Data is being stored for future sessions.' }
+        ];
+        alertList.innerHTML = '';
+        alerts.forEach(function (alert) {
+          const item = document.createElement('div');
+          item.className = 'alert-item';
+          item.innerHTML = '<strong>' + alert.title + '</strong>' + alert.text;
+          alertList.appendChild(item);
+        });
+
+        const connectionData = [58, 74, 63, 81, 69, 88];
+        graphBars.innerHTML = '';
+        connectionData.forEach(function (value, index) {
+          const bar = document.createElement('div');
+          bar.className = 'graph-bar';
+          bar.style.height = value + '%';
+          bar.innerHTML = '<span>' + ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][index] + '</span>';
+          graphBars.appendChild(bar);
+        });
+
+        const sharedState = (sharedStateMap && sharedStateMap[activeTable.id]) || {};
+        const queueItems = Array.isArray(sharedState.queue) && sharedState.queue.length ? sharedState.queue : [];
+        serverDisplay.textContent = sharedState.activeTopic ? (sharedState.activeMode === 'music' ? 'Music mode is live' : sharedState.activeTopic + ' is now on the hologram') : 'Waiting for tablet input.';
+        serverQueue.textContent = queueItems.length ? queueItems.join(' • ') : 'No topics queued yet.';
+
+        historyList.innerHTML = '';
+        if (!history.length) {
+          historyList.innerHTML = '<li class="empty-state">No topic history yet.</li>';
+        } else {
+          history.slice().reverse().forEach(function (entry, index) {
+            const item = document.createElement('li');
+            const historyIndex = history.length - 1 - index;
+            item.className = 'history-item';
+            item.innerHTML = '<div><span class="history-time">' + entry.time + '</span>' + entry.userName + ' selected <strong>' + entry.selection + '</strong> for the hologram.</div><button type="button" class="history-remove-btn" data-index="' + historyIndex + '">Remove</button>';
+            item.querySelector('.history-remove-btn').addEventListener('click', function () {
+              removeHistoryEntry(historyIndex);
+            });
+            historyList.appendChild(item);
+          });
+        }
+      }
+
+      async function loadAndRender(bundle) {
+        const serverState = bundle && bundle.serverState ? bundle.serverState : await getServerState();
+        const sharedStateMap = bundle && bundle.sharedState ? bundle.sharedState : await getSharedStateMap();
+        latestServerState = {
+          ...serverState,
+          tables: Array.isArray(serverState.tables) && serverState.tables.length ? serverState.tables : createDefaultTables(),
+          history: Array.isArray(serverState.history) ? serverState.history : []
+        };
+        latestSharedState = sharedStateMap || {};
+
+        if (!selectedTableId || !latestServerState.tables.some(function (table) { return table.id === selectedTableId; })) {
+          selectedTableId = latestServerState.tables[0].id;
+        }
+
+        renderTableList(latestServerState);
+        renderServerView(latestServerState, latestSharedState);
+      }
+
+      async function removeUserFromActiveTable(index) {
+        const activeTable = getActiveTable(latestServerState);
+        if (!activeTable || !Array.isArray(activeTable.users)) {
+          return;
+        }
+        const targetUser = activeTable.users[index];
+        if (!targetUser) {
+          return;
+        }
+        const bundle = await window.topicTableApi.removeUser({ tableId: activeTable.id, userName: targetUser.name || 'Guest user' });
+        await loadAndRender(bundle);
+      }
+
+      async function removeHistoryEntry(index) {
+        const activeTable = getActiveTable(latestServerState);
+        if (!activeTable) {
+          return;
+        }
+        const bundle = await window.topicTableApi.removeHistoryEntry({ tableId: activeTable.id, index: index });
+        await loadAndRender(bundle);
+      }
+
+      async function clearHistoryForActiveTable() {
+        const activeTable = getActiveTable(latestServerState);
+        if (!activeTable) {
+          return;
+        }
+        const bundle = await window.topicTableApi.clearTableHistory({ tableId: activeTable.id });
+        await loadAndRender(bundle);
+      }
+
+      async function clearTopicForActiveTable() {
+        const activeTable = getActiveTable(latestServerState);
+        if (!activeTable) {
+          return;
+        }
+        const bundle = await window.topicTableApi.clearAdminTopic({ tableId: activeTable.id });
+        await loadAndRender(bundle);
+      }
+
+      manualAddUserBtn.addEventListener('click', async function () {
+        const activeTable = getActiveTable(latestServerState);
+        if (!activeTable) {
+          return;
+        }
+
+        const hasAnyValue = [manualUserName.value.trim(), manualEmail.value.trim(), manualPhone.value.trim()].some(function (value) {
+          return value;
+        });
+        if (!hasAnyValue) {
+          return;
+        }
+
+        const bundle = await window.topicTableApi.syncUser({
+          tableId: activeTable.id,
+          userName: manualUserName.value.trim() || 'Guest user',
+          email: manualEmail.value.trim() || 'N/A',
+          phone: manualPhone.value.trim() || 'N/A',
+          nric: 'Manual entry',
+          selection: 'Manual entry'
+        });
+        await loadAndRender(bundle);
+        manualUserName.value = '';
+        manualEmail.value = '';
+        manualPhone.value = '';
+      });
+
+      manualTopicBtn.addEventListener('click', async function () {
+        const activeTable = getActiveTable(latestServerState);
+        const topic = manualTopic.value.trim();
+        if (!activeTable || !topic) {
+          return;
+        }
+
+        const bundle = await window.topicTableApi.setAdminTopic({ tableId: activeTable.id, topic: topic });
+        await loadAndRender(bundle);
+        manualTopic.value = '';
+      });
+
+      clearTopicBtn.addEventListener('click', async function () {
+        await clearTopicForActiveTable();
+      });
+      clearHistoryBtn.addEventListener('click', async function () {
+        await clearHistoryForActiveTable();
+      });
+      tableSelector.addEventListener('change', function () {
+        selectedTableId = tableSelector.value;
+        selectedUserIndex = null;
+        renderTableList(latestServerState);
+        renderServerView(latestServerState, latestSharedState);
+      });
+      userSelector.addEventListener('change', function () {
+        selectedUserIndex = userSelector.value ? parseInt(userSelector.value, 10) : null;
+        renderServerView(latestServerState, latestSharedState);
+      });
+
+      window.topicTableApi.connectUpdates(async function (bundle) {
+        await loadAndRender(bundle);
+      });
+
+      loadAndRender();
+    </script>
+  </body>
+</html>

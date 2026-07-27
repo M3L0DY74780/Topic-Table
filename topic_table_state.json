@@ -1,0 +1,144 @@
+{
+  "version": 99,
+  "updatedAt": 1785161793.0956357,
+  "serverState": {
+    "tables": [
+      {
+        "id": "Table 01",
+        "name": "Table 01",
+        "status": "Live",
+        "users": [
+          {
+            "name": "Melo",
+            "email": "N/A",
+            "phone": "N/A",
+            "nric": "M3",
+            "history": [
+              "Music mode",
+              "Me at the zoo",
+              "Me at the zoo",
+              "Best Pinoy Tagalog Love Songs\ud83d\udd25OPM 80's 90's Hits Song \ud83c\udfa7 Ako Nalang Sana",
+              "Gigi Perez - Sailor Song (Lyrics)",
+              "Best Pinoy Tagalog Love Songs\ud83d\udd25OPM 80's 90's Hits Song \ud83c\udfa7 Ako Nalang Sana",
+              "Best Pinoy Tagalog Love Songs\ud83d\udd25OPM 80's 90's Hits Song \ud83c\udfa7 Ako Nalang Sana",
+              "Best Pinoy Tagalog Love Songs\ud83d\udd25OPM 80's 90's Hits Song \ud83c\udfa7 Ako Nalang Sana"
+            ],
+            "lastSelection": "Best Pinoy Tagalog Love Songs\ud83d\udd25OPM 80's 90's Hits Song \ud83c\udfa7 Ako Nalang Sana"
+          }
+        ]
+      },
+      {
+        "id": "Table 02",
+        "name": "Table 02",
+        "status": "Live",
+        "users": []
+      },
+      {
+        "id": "Table 03",
+        "name": "Table 03",
+        "status": "Live",
+        "users": []
+      },
+      {
+        "id": "Table 04",
+        "name": "Table 04",
+        "status": "Standby",
+        "users": []
+      },
+      {
+        "id": "Table 05",
+        "name": "Table 05",
+        "status": "Live",
+        "users": []
+      }
+    ],
+    "history": [
+      {
+        "tableId": "Table 01",
+        "userName": "Melo",
+        "selection": "Signed in",
+        "time": "10:11 PM"
+      },
+      {
+        "tableId": "Table 01",
+        "userName": "Melo",
+        "selection": "Music mode",
+        "time": "10:11 PM"
+      },
+      {
+        "tableId": "Table 01",
+        "userName": "Melo",
+        "selection": "Me at the zoo",
+        "time": "10:12 PM"
+      },
+      {
+        "tableId": "Table 01",
+        "userName": "Melo",
+        "selection": "Signed in",
+        "time": "10:12 PM"
+      },
+      {
+        "tableId": "Table 01",
+        "userName": "Melo",
+        "selection": "Music mode",
+        "time": "10:12 PM"
+      },
+      {
+        "tableId": "Table 01",
+        "userName": "Melo",
+        "selection": "Me at the zoo",
+        "time": "10:12 PM"
+      },
+      {
+        "tableId": "Table 01",
+        "userName": "Melo",
+        "selection": "Me at the zoo",
+        "time": "10:13 PM"
+      },
+      {
+        "tableId": "Table 01",
+        "userName": "Melo",
+        "selection": "Best Pinoy Tagalog Love Songs\ud83d\udd25OPM 80's 90's Hits Song \ud83c\udfa7 Ako Nalang Sana",
+        "time": "10:14 PM"
+      },
+      {
+        "tableId": "Table 01",
+        "userName": "Melo",
+        "selection": "Gigi Perez - Sailor Song (Lyrics)",
+        "time": "10:14 PM"
+      },
+      {
+        "tableId": "Table 01",
+        "userName": "Melo",
+        "selection": "Best Pinoy Tagalog Love Songs\ud83d\udd25OPM 80's 90's Hits Song \ud83c\udfa7 Ako Nalang Sana",
+        "time": "10:14 PM"
+      },
+      {
+        "tableId": "Table 01",
+        "userName": "Melo",
+        "selection": "Best Pinoy Tagalog Love Songs\ud83d\udd25OPM 80's 90's Hits Song \ud83c\udfa7 Ako Nalang Sana",
+        "time": "10:16 PM"
+      },
+      {
+        "tableId": "Table 01",
+        "userName": "Melo",
+        "selection": "Best Pinoy Tagalog Love Songs\ud83d\udd25OPM 80's 90's Hits Song \ud83c\udfa7 Ako Nalang Sana",
+        "time": "10:16 PM"
+      }
+    ],
+    "lastUser": "Melo",
+    "activeTopic": "Best Pinoy Tagalog Love Songs\ud83d\udd25OPM 80's 90's Hits Song \ud83c\udfa7 Ako Nalang Sana"
+  },
+  "sharedState": {
+    "Table 01": {
+      "activeMode": "music",
+      "activeTopic": "Best Pinoy Tagalog Love Songs\ud83d\udd25OPM 80's 90's Hits Song \ud83c\udfa7 Ako Nalang Sana",
+      "queue": [
+        "Best Pinoy Tagalog Love Songs\ud83d\udd25OPM 80's 90's Hits Song \ud83c\udfa7 Ako Nalang Sana"
+      ],
+      "musicEmbedUrl": "https://www.youtube-nocookie.com/embed/0LMN5wLScKI",
+      "musicProvider": "YouTube",
+      "musicSourceUrl": "https://www.youtube.com/watch?v=0LMN5wLScKI"
+    }
+  }
+}
