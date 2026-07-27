@@ -323,7 +323,7 @@ def build_youtube_embed_url(video_id):
     return (
         'https://www.youtube-nocookie.com/embed/'
         + video_id
-        + '?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1'
+        + '?autoplay=1&playsinline=1&rel=0&modestbranding=1'
     )
 
 
