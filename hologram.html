@@ -106,6 +106,8 @@
 
       function applyProjectionFullscreenLayout(isProjectionFullscreen) {
         if (isProjectionFullscreen) {
+          const hasMusicEmbed = projectionStage.classList.contains('has-music-embed');
+
           projectionScreen.style.display = 'flex';
           projectionScreen.style.flex = '1 1 auto';
           projectionScreen.style.width = '100%';
@@ -116,12 +118,15 @@
           projectionScreen.style.boxShadow = 'inset 0 0 60px rgba(94, 234, 212, 0.18)';
 
           projectionContent.style.flex = '1 1 auto';
-          projectionContent.style.minHeight = '100vh';
+          projectionContent.style.minHeight = '0';
           projectionContent.style.height = '100vh';
-          projectionContent.style.padding = '40px 60px';
+          projectionContent.style.padding = hasMusicEmbed ? '18px 24px 20px' : '40px 60px';
+          projectionContent.style.justifyContent = hasMusicEmbed ? 'flex-start' : 'center';
 
-          projectionTitle.style.fontSize = 'clamp(3.5rem, 9vw, 7rem)';
-          projectionTitle.style.marginBottom = '0';
+          projectionTitle.style.fontSize = hasMusicEmbed
+            ? 'clamp(1.3rem, 2.8vw, 2.2rem)'
+            : 'clamp(3.5rem, 9vw, 7rem)';
+          projectionTitle.style.marginBottom = hasMusicEmbed ? '10px' : '0';
           projectionSubtitle.style.display = 'none';
           projectionLabel.style.display = 'none';
           return;
@@ -140,6 +145,7 @@
         projectionContent.style.minHeight = '';
         projectionContent.style.height = '';
         projectionContent.style.padding = '';
+        projectionContent.style.justifyContent = '';
 
         projectionTitle.style.fontSize = '';
         projectionTitle.style.marginBottom = '';
@@ -259,6 +265,8 @@
           musicFallbackLink.href = '#';
           musicFallbackText.classList.add('hidden');
         }
+
+        syncFullscreenButton();
 
         topicQueue.innerHTML = '';
         queueItems.forEach(function (item) {

@@ -526,16 +526,16 @@ h1 {
 .projection-stage.is-projection-fullscreen .music-embed-container,
 .projection-stage:fullscreen .music-embed-container,
 .projection-stage:-webkit-full-screen .music-embed-container {
-  width: min(94vw, 1400px);
-  max-width: 1400px;
-  margin-top: 20px;
+  width: min(96vw, 1500px);
+  max-width: 1500px;
+  margin-top: 10px;
 }
 
 .projection-stage.is-projection-fullscreen .music-embed-frame,
 .projection-stage:fullscreen .music-embed-frame,
 .projection-stage:-webkit-full-screen .music-embed-frame {
   min-height: 0;
-  height: min(70vh, calc(100vh - 210px));
+  height: min(78vh, calc(100vh - 130px));
 }
 
 .projection-stage.is-projection-fullscreen.has-music-embed .projection-content,
