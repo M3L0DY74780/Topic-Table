@@ -19,6 +19,55 @@ body {
   background: linear-gradient(135deg, var(--bg), #0f2240 60%, #173a5e);
   color: var(--text);
   min-height: 100vh;
+  top: 0 !important;
+}
+
+.goog-te-banner-frame {
+  display: none !important;
+}
+
+.goog-te-gadget,
+.goog-logo-link,
+#goog-gt-tt {
+  display: none !important;
+}
+
+.google-translate-element {
+  display: none;
+}
+
+.language-selector-container {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(4, 19, 32, 0.92);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22);
+}
+
+.language-selector-container label {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.language-selector {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  font-size: 0.82rem;
+}
+
+.language-selector:focus {
+  outline: 2px solid rgba(94, 234, 212, 0.35);
+  outline-offset: 1px;
 }
 
 .hero {
