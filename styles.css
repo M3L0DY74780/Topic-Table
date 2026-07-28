@@ -91,6 +91,39 @@ body {
   letter-spacing: 0.03em;
 }
 
+.tts-control-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tts-close-btn {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.tts-open-btn {
+  position: fixed;
+  left: 14px;
+  bottom: 14px;
+  z-index: 9999;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(4, 19, 32, 0.94);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.78rem;
+}
+
 .tts-control-actions {
   display: flex;
   gap: 6px;
@@ -1190,6 +1223,11 @@ h1 {
     left: 10px;
     bottom: 10px;
     width: min(220px, calc(100vw - 20px));
+  }
+
+  .tts-open-btn {
+    left: 10px;
+    bottom: 10px;
   }
 
   .language-selector-container {

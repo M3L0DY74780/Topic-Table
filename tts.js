@@ -3,11 +3,13 @@
   var enabledKey = 'topicTableTtsEnabled';
   var autoReadKey = 'topicTableTtsAutoRead';
   var rateKey = 'topicTableTtsRate';
+  var uiClosedKey = 'topicTableTtsUiClosed';
 
   var state = {
     enabled: true,
     autoRead: false,
     rate: 1,
+    uiClosed: false,
     lastAnnouncement: '',
     lastAnnouncementAt: 0
   };
@@ -250,7 +252,23 @@
     }
   }
 
+  function updateUiClosedValue(value) {
+    state.uiClosed = !!value;
+    try {
+      localStorage.setItem(uiClosedKey, state.uiClosed ? '1' : '0');
+    } catch (error) {
+      // Ignore storage failures.
+    }
+  }
+
   function loadSettings() {
+    try {
+      var savedUiClosed = localStorage.getItem(uiClosedKey);
+      state.uiClosed = savedUiClosed === '1';
+    } catch (error) {
+      state.uiClosed = false;
+    }
+
     try {
       var savedEnabled = localStorage.getItem(enabledKey);
       state.enabled = savedEnabled === null ? true : savedEnabled === '1';
@@ -283,9 +301,21 @@
     container.className = 'tts-control-container';
     container.setAttribute('data-tts-ignore', 'true');
 
+    var header = document.createElement('div');
+    header.className = 'tts-control-header';
+
     var title = document.createElement('strong');
     title.className = 'tts-control-title';
     title.textContent = 'Audio Guide';
+
+    var closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'tts-close-btn';
+    closeButton.setAttribute('aria-label', 'Close audio guide');
+    closeButton.textContent = 'x';
+
+    header.appendChild(title);
+    header.appendChild(closeButton);
 
     var actions = document.createElement('div');
     actions.className = 'tts-control-actions';
@@ -395,13 +425,37 @@
       ? (state.enabled ? 'Ready to read.' : 'Text-to-speech is turned off.')
       : 'Text-to-speech not available here.';
 
-    container.appendChild(title);
+    container.appendChild(header);
     container.appendChild(actions);
     container.appendChild(settingsRow);
     container.appendChild(status);
     document.body.appendChild(container);
 
+    var reopenButton = document.createElement('button');
+    reopenButton.id = 'ttsOpenControlBtn';
+    reopenButton.className = 'tts-open-btn';
+    reopenButton.setAttribute('data-tts-ignore', 'true');
+    reopenButton.type = 'button';
+    reopenButton.textContent = 'Audio guide';
+    document.body.appendChild(reopenButton);
+
+    function updateUiVisibility() {
+      container.style.display = state.uiClosed ? 'none' : '';
+      reopenButton.style.display = state.uiClosed ? '' : 'none';
+    }
+
+    closeButton.addEventListener('click', function () {
+      updateUiClosedValue(true);
+      updateUiVisibility();
+    });
+
+    reopenButton.addEventListener('click', function () {
+      updateUiClosedValue(false);
+      updateUiVisibility();
+    });
+
     syncControlAvailability();
+    updateUiVisibility();
   }
 
   function bindHotkeys() {
