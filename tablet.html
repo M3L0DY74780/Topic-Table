@@ -200,6 +200,8 @@
       const nextTopicBtn = document.getElementById('nextTopicBtn');
       const clearQueueBtn = document.getElementById('clearQueueBtn');
       const queueMessage = document.getElementById('queueMessage');
+      const nricLoginBtn = loginForm.querySelector('button[type="submit"]');
+      let isFaceScanRunning = false;
 
       function speakUpdate(message, force) {
         if (!window.topicTableTTS || !message) {
@@ -214,6 +216,47 @@
         } catch (error) {
           return 'Table 01';
         }
+      }
+
+      function hasRequiredIdentityFields() {
+        return !!(fullNameInput.value.trim() && emailInput.value.trim() && phoneInput.value.trim());
+      }
+
+      function setLoginActionsEnabled(enabled) {
+        if (nricLoginBtn) {
+          nricLoginBtn.disabled = !enabled;
+        }
+        faceScanBtn.disabled = !enabled;
+      }
+
+      function updateLoginActionAvailability() {
+        const canAttemptLogin = hasRequiredIdentityFields() && !isFaceScanRunning;
+        setLoginActionsEnabled(canAttemptLogin);
+      }
+
+      function validateRequiredIdentityFields() {
+        if (hasRequiredIdentityFields()) {
+          return true;
+        }
+
+        loginMessage.textContent = 'Please enter your name, email, and phone number first.';
+        speakUpdate(loginMessage.textContent, true);
+        updateLoginActionAvailability();
+        return false;
+      }
+
+      async function runFaceScan() {
+        isFaceScanRunning = true;
+        updateLoginActionAvailability();
+        loginMessage.textContent = 'Scanning face... Please look at the camera.';
+        speakUpdate('Scanning face. Please look at the camera.', true);
+
+        await new Promise(function (resolve) {
+          window.setTimeout(resolve, 1600);
+        });
+
+        isFaceScanRunning = false;
+        updateLoginActionAvailability();
       }
 
       function setSelectedTableId(tableId) {
@@ -339,6 +382,7 @@
           speakUpdate(settings.message, true);
         }
         queueMessage.textContent = '';
+        updateLoginActionAvailability();
         fullNameInput.focus();
       }
 
@@ -412,12 +456,20 @@
       }
 
       async function handleLogin(source) {
+        if (!validateRequiredIdentityFields()) {
+          return;
+        }
+
         const enteredNric = nricInput.value.trim();
 
         if (source === 'nric' && !enteredNric) {
           loginMessage.textContent = 'Please enter your NRIC to continue.';
           speakUpdate(loginMessage.textContent, true);
           return;
+        }
+
+        if (source === 'face') {
+          await runFaceScan();
         }
 
         const userName = source === 'face' ? (fullNameInput.value.trim() || 'Guest User') : (fullNameInput.value.trim() || enteredNric.toUpperCase());
@@ -754,6 +806,10 @@
         });
       });
 
+      [fullNameInput, emailInput, phoneInput].forEach(function (input) {
+        input.addEventListener('input', updateLoginActionAvailability);
+      });
+
       loginForm.addEventListener('submit', async function (event) {
         event.preventDefault();
         await handleLogin('nric');
@@ -822,6 +878,8 @@
       window.topicTableApi.connectUpdates(async function (bundle) {
         await syncTabletUsersFromServer(bundle.serverState || {});
       });
+
+      updateLoginActionAvailability();
     </script>
   </body>
 </html>
