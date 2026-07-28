@@ -135,6 +135,12 @@
                 <div id="musicSearchResults" class="music-search-results"></div>
               </div>
               <p id="queueMessage" class="message"></p>
+              <div class="preview-box">
+                <h4>Queued items</h4>
+                <ul id="tabletQueueList" class="queue-list">
+                  <li>No topics queued yet.</li>
+                </ul>
+              </div>
               <p id="displayMessage">Waiting for a topic to be shared.</p>
               <div class="preview-box">
                 <h4 id="previewTitle">Hologram ready</h4>
@@ -200,6 +206,7 @@
       const nextTopicBtn = document.getElementById('nextTopicBtn');
       const clearQueueBtn = document.getElementById('clearQueueBtn');
       const queueMessage = document.getElementById('queueMessage');
+      const tabletQueueList = document.getElementById('tabletQueueList');
       const nricLoginBtn = loginForm.querySelector('button[type="submit"]');
       let isFaceScanRunning = false;
 
@@ -275,6 +282,27 @@
         } catch (error) {
           return {};
         }
+      }
+
+      function renderTabletQueue(queueItems) {
+        const items = Array.isArray(queueItems) ? queueItems : [];
+        tabletQueueList.innerHTML = '';
+
+        if (!items.length) {
+          tabletQueueList.innerHTML = '<li>No topics queued yet.</li>';
+          return;
+        }
+
+        items.forEach(function (item) {
+          const listItem = document.createElement('li');
+          listItem.textContent = item;
+          tabletQueueList.appendChild(listItem);
+        });
+      }
+
+      async function refreshTabletQueue(sharedTableState) {
+        const state = sharedTableState || await getStoredState(getSelectedTableId());
+        renderTabletQueue(Array.isArray(state.queue) ? state.queue : []);
       }
 
       async function persistSharedState(state, tableId) {
@@ -452,6 +480,7 @@
         selectedTableDisplay.textContent = 'Table: ' + getSelectedTableId();
         await syncServerState(userName, 'Signed in', getSelectedTableId());
         await renderUsersList();
+        await refreshTabletQueue();
         speakUpdate('Signed in as ' + currentSessionUserName + ' at ' + getSelectedTableId() + '.', true);
       }
 
@@ -511,6 +540,7 @@
 
         await persistSharedState(nextState, getSelectedTableId());
         await syncServerState(contactInfo.name, topic, getSelectedTableId());
+        renderTabletQueue(queue);
         speakUpdate(displayMessage.textContent, true);
       }
 
@@ -540,6 +570,7 @@
 
         await persistSharedState(nextState, getSelectedTableId());
         await syncServerState(contactInfo.name, title, getSelectedTableId());
+        renderTabletQueue(nextState.queue);
 
         selectedTopicLabel.textContent = 'YouTube is now playing: ' + title;
         displayMessage.textContent = 'The selected YouTube song is now on the hologram.';
@@ -575,6 +606,7 @@
 
         await persistSharedState(nextState, getSelectedTableId());
         await syncServerState(contactInfo.name, title, getSelectedTableId());
+        renderTabletQueue(nextState.queue);
 
         selectedTopicLabel.textContent = 'YouTube direct mode selected: ' + title;
         displayMessage.textContent = 'Open this track directly on the hologram screen.';
@@ -701,6 +733,7 @@
 
         await persistSharedState(nextState, getSelectedTableId());
         await syncServerState(fullNameInput.value.trim() || contactInfo.name, 'Queued topic: ' + topic, getSelectedTableId());
+        renderTabletQueue(queue);
         selectedTopicLabel.textContent = `Queued topic: ${topic}`;
         displayMessage.textContent = `${topic} has been added to the queue. Current hologram content stays unchanged.`;
         previewTitle.textContent = `${topic} queued`;
@@ -728,6 +761,7 @@
 
         await persistSharedState(nextState, getSelectedTableId());
         await syncServerState(fullNameInput.value.trim() || contactInfo.name, nextTopic, getSelectedTableId());
+        renderTabletQueue(queue);
         selectedTopicLabel.textContent = `Now showing: ${nextTopic}`;
         displayMessage.textContent = `${nextTopic} is now shown on the hologram.`;
         previewTitle.textContent = `${nextTopic}`;
@@ -740,6 +774,7 @@
         const tableId = getSelectedTableId();
         await persistSharedState({ activeMode: 'topic', activeTopic: '', queue: [] }, tableId);
         await syncServerState(fullNameInput.value.trim() || contactInfo.name, 'Queue cleared', tableId);
+        renderTabletQueue([]);
         selectedTopicLabel.textContent = 'Queue cleared.';
         displayMessage.textContent = 'The queue has been cleared.';
         previewTitle.textContent = 'Queue cleared';
@@ -803,6 +838,7 @@
         button.addEventListener('click', async function () {
           setSelectedTableId(button.dataset.table);
           speakUpdate('Switched to ' + button.dataset.table + '.', true);
+          await refreshTabletQueue();
           if (!topicView.classList.contains('hidden')) {
             currentSessionTableId = getSelectedTableId();
             await syncTabletUsersFromServer();
@@ -841,6 +877,7 @@
       });
 
       setSelectedTableId(getSelectedTableId());
+      refreshTabletQueue();
 
       document.querySelectorAll('.topic-btn').forEach(function (button) {
         button.addEventListener('click', async function () {
@@ -881,6 +918,8 @@
 
       window.topicTableApi.connectUpdates(async function (bundle) {
         await syncTabletUsersFromServer(bundle.serverState || {});
+        const sharedMap = bundle.sharedState || {};
+        await refreshTabletQueue(sharedMap[getSelectedTableId()] || null);
       });
 
       updateLoginActionAvailability();
