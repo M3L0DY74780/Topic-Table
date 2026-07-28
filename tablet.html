@@ -690,17 +690,21 @@
           return item !== topic;
         })].slice(0, 6);
         const nextState = {
-          activeMode: 'topic',
-          activeTopic: topic,
-          queue: queue
+          activeMode: previousState.activeMode || 'topic',
+          activeTopic: previousState.activeTopic || '',
+          queue: queue,
+          musicEmbedUrl: previousState.musicEmbedUrl || '',
+          musicProvider: previousState.musicProvider || '',
+          musicSourceUrl: previousState.musicSourceUrl || '',
+          musicPlaybackMode: previousState.musicPlaybackMode || 'embed'
         };
 
         await persistSharedState(nextState, getSelectedTableId());
-        await syncServerState(fullNameInput.value.trim() || contactInfo.name, topic, getSelectedTableId());
+        await syncServerState(fullNameInput.value.trim() || contactInfo.name, 'Queued topic: ' + topic, getSelectedTableId());
         selectedTopicLabel.textContent = `Queued topic: ${topic}`;
-        displayMessage.textContent = `${topic} has been added to the queue.`;
+        displayMessage.textContent = `${topic} has been added to the queue. Current hologram content stays unchanged.`;
         previewTitle.textContent = `${topic} queued`;
-        previewSubtitle.textContent = 'The hologram will show this topic next.';
+        previewSubtitle.textContent = 'Press Next when you are ready to show it on the hologram.';
         queueMessage.textContent = `${topic} added to queue.`;
         speakUpdate(queueMessage.textContent, true);
         customTopicInput.value = '';
