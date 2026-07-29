@@ -119,7 +119,7 @@
                 <button class="topic-btn" data-topic="Food">Food</button>
               </div>
               <div class="topic-actions">
-                <button id="addTopicBtn" class="btn btn-primary">Add to queue</button>
+                <button id="addTopicBtn" class="btn btn-primary">Queue mode: OFF</button>
                 <button id="nextTopicBtn" class="btn btn-secondary">Next</button>
                 <button id="clearQueueBtn" class="btn btn-tertiary">Clear queue</button>
                 <button id="musicBtn" class="btn btn-tertiary">Listen to music instead</button>
@@ -209,6 +209,7 @@
       const tabletQueueList = document.getElementById('tabletQueueList');
       const nricLoginBtn = loginForm.querySelector('button[type="submit"]');
       let isFaceScanRunning = false;
+      let isQueueModeEnabled = false;
 
       function speakUpdate(message, force) {
         if (!window.topicTableTTS || !message) {
@@ -227,6 +228,27 @@
 
       function hasRequiredIdentityFields() {
         return !!(fullNameInput.value.trim() && emailInput.value.trim() && phoneInput.value.trim());
+      }
+
+      function updateQueueModeUI() {
+        addTopicBtn.textContent = isQueueModeEnabled ? 'Queue mode: ON' : 'Queue mode: OFF';
+        addTopicBtn.classList.toggle('btn-warning', isQueueModeEnabled);
+        addTopicBtn.classList.toggle('btn-primary', !isQueueModeEnabled);
+      }
+
+      function toggleQueueMode() {
+        isQueueModeEnabled = !isQueueModeEnabled;
+        updateQueueModeUI();
+
+        if (isQueueModeEnabled) {
+          queueMessage.textContent = 'Queue mode enabled. Topic selections will be queued only.';
+          displayMessage.textContent = 'Queue mode is ON. Hologram will not change until you press Next.';
+        } else {
+          queueMessage.textContent = 'Queue mode disabled. Topic selections will go to the hologram.';
+          displayMessage.textContent = 'Queue mode is OFF. Selected topics will show on the hologram.';
+        }
+
+        speakUpdate(queueMessage.textContent, true);
       }
 
       function setLoginActionsEnabled(enabled) {
@@ -544,6 +566,41 @@
         speakUpdate(displayMessage.textContent, true);
       }
 
+      async function queueTopicOnly(topic) {
+        const value = (topic || '').trim();
+        if (!value) {
+          queueMessage.textContent = 'Please type or select a topic first.';
+          speakUpdate(queueMessage.textContent, true);
+          return;
+        }
+
+        const previousState = await getStoredState(getSelectedTableId());
+        const queue = [value, ...(Array.isArray(previousState.queue) ? previousState.queue : []).filter(function (item) {
+          return item !== value;
+        })].slice(0, 6);
+        const nextState = {
+          activeMode: previousState.activeMode || 'topic',
+          activeTopic: previousState.activeTopic || '',
+          queue: queue,
+          musicEmbedUrl: previousState.musicEmbedUrl || '',
+          musicProvider: previousState.musicProvider || '',
+          musicSourceUrl: previousState.musicSourceUrl || '',
+          musicPlaybackMode: previousState.musicPlaybackMode || 'embed'
+        };
+
+        await persistSharedState(nextState, getSelectedTableId());
+        await syncServerState(fullNameInput.value.trim() || contactInfo.name, 'Queued topic: ' + value, getSelectedTableId());
+        renderTabletQueue(queue);
+
+        selectedTopicLabel.textContent = `Queued topic: ${value}`;
+        displayMessage.textContent = `${value} has been added to queue only. Hologram stays on current content.`;
+        previewTitle.textContent = `${value} queued`;
+        previewSubtitle.textContent = 'Press Next when you are ready to show it on the hologram.';
+        queueMessage.textContent = `${value} added to queue.`;
+        speakUpdate(queueMessage.textContent, true);
+        customTopicInput.value = '';
+      }
+
       async function shareMusicVideo(video) {
         if (!video) {
           musicSearchMessage.textContent = 'Unable to play this result. Please try another one.';
@@ -710,37 +767,7 @@
       }
 
       async function queueCustomTopic() {
-        const topic = customTopicInput.value.trim();
-        if (!topic) {
-          queueMessage.textContent = 'Please type a topic first.';
-          speakUpdate(queueMessage.textContent, true);
-          return;
-        }
-
-        const previousState = await getStoredState(getSelectedTableId());
-        const queue = [topic, ...(Array.isArray(previousState.queue) ? previousState.queue : []).filter(function (item) {
-          return item !== topic;
-        })].slice(0, 6);
-        const nextState = {
-          activeMode: previousState.activeMode || 'topic',
-          activeTopic: previousState.activeTopic || '',
-          queue: queue,
-          musicEmbedUrl: previousState.musicEmbedUrl || '',
-          musicProvider: previousState.musicProvider || '',
-          musicSourceUrl: previousState.musicSourceUrl || '',
-          musicPlaybackMode: previousState.musicPlaybackMode || 'embed'
-        };
-
-        await persistSharedState(nextState, getSelectedTableId());
-        await syncServerState(fullNameInput.value.trim() || contactInfo.name, 'Queued topic: ' + topic, getSelectedTableId());
-        renderTabletQueue(queue);
-        selectedTopicLabel.textContent = `Queued topic: ${topic}`;
-        displayMessage.textContent = `${topic} has been added to the queue. Current hologram content stays unchanged.`;
-        previewTitle.textContent = `${topic} queued`;
-        previewSubtitle.textContent = 'Press Next when you are ready to show it on the hologram.';
-        queueMessage.textContent = `${topic} added to queue.`;
-        speakUpdate(queueMessage.textContent, true);
-        customTopicInput.value = '';
+        await queueTopicOnly(customTopicInput.value.trim());
       }
 
       async function moveToNextTopic() {
@@ -881,12 +908,16 @@
 
       document.querySelectorAll('.topic-btn').forEach(function (button) {
         button.addEventListener('click', async function () {
+          if (isQueueModeEnabled) {
+            await queueTopicOnly(button.dataset.topic);
+            return;
+          }
           await setTopic(button.dataset.topic);
         });
       });
 
       addTopicBtn.addEventListener('click', async function () {
-        await queueCustomTopic();
+        toggleQueueMode();
       });
 
       nextTopicBtn.addEventListener('click', async function () {
@@ -916,6 +947,25 @@
         }
       });
 
+      customTopicInput.addEventListener('keydown', async function (event) {
+        if (event.key !== 'Enter') {
+          return;
+        }
+        event.preventDefault();
+        if (isQueueModeEnabled) {
+          await queueCustomTopic();
+          return;
+        }
+        const customValue = customTopicInput.value.trim();
+        if (!customValue) {
+          queueMessage.textContent = 'Please type a topic first.';
+          speakUpdate(queueMessage.textContent, true);
+          return;
+        }
+        await setTopic(customValue);
+        customTopicInput.value = '';
+      });
+
       window.topicTableApi.connectUpdates(async function (bundle) {
         await syncTabletUsersFromServer(bundle.serverState || {});
         const sharedMap = bundle.sharedState || {};
@@ -923,6 +973,7 @@
       });
 
       updateLoginActionAvailability();
+      updateQueueModeUI();
     </script>
   </body>
 </html>
