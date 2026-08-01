@@ -1,4 +1,21 @@
 (function () {
+  async function setEscapeProtection(enabled) {
+    try {
+      if (enabled) {
+        if (navigator.keyboard && typeof navigator.keyboard.lock === 'function') {
+          await navigator.keyboard.lock(['Escape']);
+        }
+        return;
+      }
+
+      if (navigator.keyboard && typeof navigator.keyboard.unlock === 'function') {
+        navigator.keyboard.unlock();
+      }
+    } catch (error) {
+      // Ignore unsupported keyboard lock APIs.
+    }
+  }
+
   function requestFullscreenAccess() {
     if (window.topicTableAuth && typeof window.topicTableAuth.requestAccess === 'function') {
       return window.topicTableAuth.requestAccess({
@@ -23,6 +40,7 @@
     var target = document.documentElement || document.body;
     if (target.requestFullscreen) {
       await target.requestFullscreen();
+      await setEscapeProtection(true);
     }
   }
 
@@ -58,11 +76,23 @@
 
     function syncLabel() {
       button.textContent = getLabel();
+      setEscapeProtection(!!document.fullscreenElement);
     }
 
     document.addEventListener('fullscreenchange', syncLabel);
     syncLabel();
   }
+
+  document.addEventListener('keydown', function (event) {
+    if (!document.fullscreenElement) {
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }, true);
 
   window.topicTableFullscreen = {
     toggle: toggleFullScreen
