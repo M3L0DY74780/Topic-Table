@@ -6,7 +6,7 @@
   var uiClosedKey = 'topicTableTtsUiClosed';
 
   var state = {
-    enabled: true,
+    enabled: false,
     autoRead: false,
     rate: 1,
     uiClosed: false,
@@ -271,9 +271,9 @@
 
     try {
       var savedEnabled = localStorage.getItem(enabledKey);
-      state.enabled = savedEnabled === null ? true : savedEnabled === '1';
+      state.enabled = savedEnabled === null ? false : savedEnabled === '1';
     } catch (error) {
-      state.enabled = true;
+      state.enabled = false;
     }
 
     try {
