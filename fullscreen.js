@@ -27,6 +27,10 @@
   }
 
   function createButton() {
+    if (document.body && document.body.dataset && document.body.dataset.disableSiteFullscreen === 'true') {
+      return;
+    }
+
     if (document.getElementById('siteFullscreenToggle')) {
       return;
     }
