@@ -43,8 +43,14 @@
     button.textContent = getLabel();
 
     button.addEventListener('click', function () {
-      toggleFullScreen().catch(function () {
-        // Ignore fullscreen permission or browser support failures.
+      requestFullscreenAccess().then(function (isAllowed) {
+        if (!isAllowed) {
+          return;
+        }
+
+        toggleFullScreen().catch(function () {
+          // Ignore fullscreen permission or browser support failures.
+        });
       });
     });
 
@@ -61,27 +67,6 @@
   window.topicTableFullscreen = {
     toggle: toggleFullScreen
   };
-
-  // Capture clicks so fullscreen actions are protected once per click.
-  document.addEventListener('click', function (event) {
-    var fullscreenControl = event.target.closest('#fullscreenBtn, #siteFullscreenToggle');
-    if (!fullscreenControl) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    requestFullscreenAccess().then(function (isAllowed) {
-      if (!isAllowed) {
-        return;
-      }
-
-      toggleFullScreen().catch(function () {
-        // Ignore fullscreen permission or browser support failures.
-      });
-    });
-  }, true);
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', createButton);

@@ -320,13 +320,26 @@
       }
 
       fullscreenBtn.addEventListener('click', function () {
+        if (!(window.topicTableAuth && typeof window.topicTableAuth.requestAccess === 'function')) {
+          return;
+        }
+
         const wasFullscreen = document.fullscreenElement === projectionStage;
-        toggleFullscreen().then(function () {
-          if (window.topicTableTTS) {
-            window.topicTableTTS.announce(wasFullscreen ? 'Exited full screen mode.' : 'Entered full screen mode.', { force: true });
+        window.topicTableAuth.requestAccess({
+          message: 'Enter the team code to enter or exit full screen.',
+          errorMessage: 'Incorrect code. Full screen access denied.'
+        }).then(function (isAllowed) {
+          if (!isAllowed) {
+            return;
           }
-        }).catch(function () {
-          // Ignore fullscreen permission or browser support failures.
+
+          toggleFullscreen().then(function () {
+            if (window.topicTableTTS) {
+              window.topicTableTTS.announce(wasFullscreen ? 'Exited full screen mode.' : 'Entered full screen mode.', { force: true });
+            }
+          }).catch(function () {
+            // Ignore fullscreen permission or browser support failures.
+          });
         });
       });
 
