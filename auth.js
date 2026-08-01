@@ -5,7 +5,10 @@
     window.location.assign('./index.html');
   }
 
-  function createAccessModal() {
+  function createAccessModal(options) {
+    const settings = options || {};
+    const actionMessage = settings.message || 'Enter the team code to continue.';
+
     const overlay = document.createElement('div');
     overlay.id = 'team-access-modal';
     overlay.style.position = 'fixed';
@@ -29,7 +32,7 @@
     title.style.margin = '0 0 8px';
 
     const message = document.createElement('p');
-    message.textContent = 'Enter the team code to return to the topic table homepage.';
+    message.textContent = actionMessage;
     message.style.margin = '0 0 14px';
     message.style.color = '#b8c6db';
 
@@ -75,21 +78,36 @@
     confirmBtn.style.cursor = 'pointer';
     confirmBtn.style.fontWeight = '700';
 
+    function closeModal() {
+      if (overlay.parentNode) {
+        overlay.parentNode.removeChild(overlay);
+      }
+    }
+
     cancelBtn.addEventListener('click', function () {
-      document.body.removeChild(overlay);
+      closeModal();
+      if (settings.onResult) {
+        settings.onResult(false);
+      }
     });
 
     confirmBtn.addEventListener('click', function () {
       if (input.value.trim().toUpperCase() === TEAM_ACCESS_CODE) {
-        goToHomePage();
+        closeModal();
+        if (settings.onResult) {
+          settings.onResult(true);
+        }
       } else {
-        error.textContent = 'Incorrect code. Only the team can return to the homepage.';
+        error.textContent = settings.errorMessage || 'Incorrect code. Access denied.';
       }
     });
 
     overlay.addEventListener('click', function (event) {
       if (event.target === overlay) {
-        document.body.removeChild(overlay);
+        closeModal();
+        if (settings.onResult) {
+          settings.onResult(false);
+        }
       }
     });
 
@@ -109,10 +127,31 @@
     }, 0);
   }
 
+  function requestTeamAccess(options) {
+    return new Promise(function (resolve) {
+      createAccessModal({
+        message: options && options.message,
+        errorMessage: options && options.errorMessage,
+        onResult: resolve
+      });
+    });
+  }
+
   function handleBackHome(event) {
     event.preventDefault();
-    createAccessModal();
+    requestTeamAccess({
+      message: 'Enter the team code to return to the topic table homepage.',
+      errorMessage: 'Incorrect code. Only the team can return to the homepage.'
+    }).then(function (isAllowed) {
+      if (isAllowed) {
+        goToHomePage();
+      }
+    });
   }
+
+  window.topicTableAuth = {
+    requestAccess: requestTeamAccess
+  };
 
   window.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('[data-back-home]').forEach(function (link) {

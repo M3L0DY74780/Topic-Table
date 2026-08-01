@@ -1,13 +1,13 @@
 (function () {
-  var ACCESS_CODE = 'TEAM2026';
-
-  function requestCode(actionLabel) {
-    var entered = window.prompt('Enter access code to ' + actionLabel + ':');
-    if (entered === ACCESS_CODE) {
-      return true;
+  function requestFullscreenAccess() {
+    if (window.topicTableAuth && typeof window.topicTableAuth.requestAccess === 'function') {
+      return window.topicTableAuth.requestAccess({
+        message: 'Enter the team code to enter or exit full screen.',
+        errorMessage: 'Incorrect code. Full screen access denied.'
+      });
     }
-    window.alert('Incorrect code. Action cancelled.');
-    return false;
+
+    return Promise.resolve(false);
   }
 
   function getLabel() {
@@ -58,19 +58,25 @@
     toggle: toggleFullScreen
   };
 
-  window.topicTableAccessGuard = {
-    requestCode: requestCode
-  };
-
   // Capture clicks so fullscreen actions are protected once per click.
   document.addEventListener('click', function (event) {
     var fullscreenControl = event.target.closest('#fullscreenBtn, #siteFullscreenToggle');
-    if (fullscreenControl) {
-      if (!requestCode('toggle full screen')) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
+    if (!fullscreenControl) {
+      return;
     }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    requestFullscreenAccess().then(function (isAllowed) {
+      if (!isAllowed) {
+        return;
+      }
+
+      toggleFullScreen().catch(function () {
+        // Ignore fullscreen permission or browser support failures.
+      });
+    });
   }, true);
 
   if (document.readyState === 'loading') {
