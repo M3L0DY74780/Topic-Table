@@ -39,9 +39,6 @@
     button.textContent = getLabel();
 
     button.addEventListener('click', function () {
-      if (!requestCode('toggle full screen')) {
-        return;
-      }
       toggleFullScreen().catch(function () {
         // Ignore fullscreen permission or browser support failures.
       });
@@ -65,10 +62,10 @@
     requestCode: requestCode
   };
 
-  // Capture clicks so hologram fullscreen click is protected.
+  // Capture clicks so fullscreen actions are protected once per click.
   document.addEventListener('click', function (event) {
-    var hologramFullscreenButton = event.target.closest('#fullscreenBtn');
-    if (hologramFullscreenButton) {
+    var fullscreenControl = event.target.closest('#fullscreenBtn, #siteFullscreenToggle');
+    if (fullscreenControl) {
       if (!requestCode('toggle full screen')) {
         event.preventDefault();
         event.stopPropagation();
