@@ -65,18 +65,8 @@
     requestCode: requestCode
   };
 
-  // Capture clicks globally so every Back to Home and hologram fullscreen click is protected.
+  // Capture clicks so hologram fullscreen click is protected.
   document.addEventListener('click', function (event) {
-    var backHomeLink = event.target.closest('[data-back-home]');
-    if (backHomeLink) {
-      if (!requestCode('go back to home')) {
-        event.preventDefault();
-        event.stopPropagation();
-        return;
-      }
-      return;
-    }
-
     var hologramFullscreenButton = event.target.closest('#fullscreenBtn');
     if (hologramFullscreenButton) {
       if (!requestCode('toggle full screen')) {
