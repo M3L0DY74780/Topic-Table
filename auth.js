@@ -8,9 +8,11 @@
   function createAccessModal(options) {
     const settings = options || {};
     const actionMessage = settings.message || 'Enter the team code to continue.';
+    const modalHost = document.fullscreenElement || document.body;
 
     const overlay = document.createElement('div');
     overlay.id = 'team-access-modal';
+    overlay.setAttribute('data-tts-ignore', 'true');
     overlay.style.position = 'fixed';
     overlay.style.inset = '0';
     overlay.style.background = 'rgba(3, 8, 20, 0.78)';
@@ -120,7 +122,7 @@
     panel.appendChild(error);
     panel.appendChild(buttons);
     overlay.appendChild(panel);
-    document.body.appendChild(overlay);
+    modalHost.appendChild(overlay);
 
     setTimeout(function () {
       input.focus();
