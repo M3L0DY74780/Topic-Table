@@ -1,4 +1,6 @@
 (function () {
+  var isEscCheckInProgress = false;
+
   async function setEscapeProtection(enabled) {
     try {
       if (enabled) {
@@ -91,6 +93,23 @@
     if (event.key === 'Escape') {
       event.preventDefault();
       event.stopPropagation();
+
+      if (isEscCheckInProgress) {
+        return;
+      }
+
+      isEscCheckInProgress = true;
+      requestFullscreenAccess().then(function (isAllowed) {
+        if (!isAllowed || !document.fullscreenElement) {
+          return;
+        }
+
+        document.exitFullscreen().catch(function () {
+          // Ignore browser support failures.
+        });
+      }).finally(function () {
+        isEscCheckInProgress = false;
+      });
     }
   }, true);
 
