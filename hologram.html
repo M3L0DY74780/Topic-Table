@@ -165,13 +165,14 @@
         }
       }
 
-      function setSelectedHologramTable(tableId) {
+      function setSelectedHologramTable(tableId, options) {
+        const settings = options || {};
         localStorage.setItem(selectedHologramKey, JSON.stringify({ tableId: tableId }));
         selectedServerMessage.textContent = 'Showing ' + tableId;
         document.querySelectorAll('.table-option-btn').forEach(function (button) {
           button.classList.toggle('active', button.dataset.table === tableId);
         });
-        if (window.topicTableTTS) {
+        if (settings.announce && window.topicTableTTS) {
           window.topicTableTTS.announce('Switched hologram to ' + tableId + '.', { force: true });
         }
         renderSharedState();
@@ -295,7 +296,7 @@
 
       document.querySelectorAll('.table-option-btn').forEach(function (button) {
         button.addEventListener('click', function () {
-          setSelectedHologramTable(button.dataset.table);
+          setSelectedHologramTable(button.dataset.table, { announce: true });
         });
       });
 
